@@ -1,14 +1,21 @@
-﻿using System.Collections.ObjectModel;
+﻿using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Windows.Input;
-using GM4ManagerWPF.Models;
+using System.Text;
+using System.Threading.Tasks;
 using GM4ManagerWPF.Classes;
+using GM4ManagerWPF.Localization;
+using GM4ManagerWPF.Models;
 
 namespace GM4ManagerWPF.ViewModels
 {
-    public class AdUserSearchViewModel : INotifyPropertyChanged
+    public class AdUserSearchWindowViewModel : INotifyPropertyChanged
     {
+        public static ResourceService Res => ResourceService.Instance;
+
         private string _searchTerm = String.Empty;
         public string SearchTerm
         {
@@ -17,9 +24,9 @@ namespace GM4ManagerWPF.ViewModels
             {
                 _searchTerm = value;
                 OnPropertyChanged();
-                SearchUsers(); // optional: automatische Suche bei jeder Eingabe
+                SearchUsers();
             }
-        }
+        }        
 
         public ObservableCollection<LdapSearchResult> SearchResults { get; } = new();
 
@@ -38,8 +45,14 @@ namespace GM4ManagerWPF.ViewModels
             }
         }
 
-        public event PropertyChangedEventHandler PropertyChanged;
+        public AdUserSearchWindowViewModel()
+        {
+            
+        }                
+
+        public event PropertyChangedEventHandler? PropertyChanged;
+
         protected void OnPropertyChanged([CallerMemberName] string? name = null) =>
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+              PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
     }
 }

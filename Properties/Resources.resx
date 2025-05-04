@@ -124,7 +124,7 @@
     <value>Load Network Share</value>
   </data>
   <data name="btnRemoveMember" xml:space="preserve">
-    <value>remove Member</value>
+    <value>Remove Member</value>
   </data>
   <data name="btnScan" xml:space="preserve">
     <value>Scan</value>
@@ -158,6 +158,9 @@
   </data>
   <data name="headerMembers" xml:space="preserve">
     <value>Members of the group</value>
+  </data>
+  <data name="helpForAsAdmin" xml:space="preserve">
+    <value> Grants the added user permission to manage group members.</value>
   </data>
   <data name="lblCurrentManager" xml:space="preserve">
     <value>Current Manager</value>
@@ -265,6 +268,6 @@
     <value>Remove User</value>
   </data>
   <data name="windowtitleAdSearch" xml:space="preserve">
-    <value>AD Search</value>
+    <value>Search Active Directory</value>
   </data>
 </root>

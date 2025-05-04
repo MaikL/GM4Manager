@@ -7,7 +7,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
         mc:Ignorable="av" x:Class="GM4ManagerWPF.MainWindow"
         xmlns:uc="clr-namespace:GM4ManagerWPF"
-        Title="GM4Manager" Height="800" Width="1200" DataContext="{Binding Source={x:Static local:ResourceService.Instance}}">
+        Title="GM4Manager - Group Manager for Manager" Height="800" Width="1200" DataContext="{Binding Source={x:Static local:ResourceService.Instance}}"
+        Icon="pack://application:,,,/Ressources/GM4ManagerIcon.ico">
     <Window.Style>
         <Style TargetType="Window" BasedOn="{StaticResource {x:Type Window}}"/>
     </Window.Style>

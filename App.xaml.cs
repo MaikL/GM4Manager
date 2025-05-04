@@ -3,26 +3,26 @@ using GM4ManagerWPF.Classes;
 
 namespace GM4ManagerWPF
 {
-    /// <summary>
-    /// Interaction logic for App.xaml
-    /// </summary>
+    /// <summary>  
+    /// Interaction logic for App.xaml  
+    /// </summary>  
     public partial class App : Application
     {
-        private SplashScreenWindow splashScreen;
+        private SplashScreenWindow splashScreen = null!; // Use null-forgiving operator to suppress CS8618  
 
         protected override async void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
 
-            // Show splash
+            // Show splash  
             splashScreen = new SplashScreenWindow();
             splashScreen.Show();
 
             try
             {
-                // Simulate config loading
-                AppSettingsManager.Load(); // or await if async
-                await Task.Delay(800); // Simulate loading time
+                // Simulate config loading  
+                AppSettingsManager.Load(); // or await if async  
+                await Task.Delay(800); // Simulate loading time  
             }
             catch (Exception ex)
             {
@@ -31,18 +31,18 @@ namespace GM4ManagerWPF
                 return;
             }
 
-            // Show main window
+            // Show main window  
             var mainWindow = new MainWindow();
             mainWindow.Loaded += (s, ev) =>
             {
-                // Fade out splash screen after main window is shown
+                // Fade out splash screen after main window is shown  
                 splashScreen.BeginFadeOut(() =>
                 {
                     splashScreen.Close();
                 });
             };
 
-            mainWindow.Show(); // Triggers Loaded event
+            mainWindow.Show(); // Triggers Loaded event  
         }
-    }   
+    }
 }

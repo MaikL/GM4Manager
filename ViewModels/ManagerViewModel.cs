@@ -1,9 +1,12 @@
 ﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Input;
 using GM4ManagerWPF.Classes;
 using GM4ManagerWPF.Helpers;
+using GM4ManagerWPF.Localization;
 using GM4ManagerWPF.Properties;
 using GM4ManagerWPF.Views;
 
@@ -11,12 +14,19 @@ namespace GM4ManagerWPF.ViewModels
 {
     public class ManagerViewModel : INotifyPropertyChanged
     {
+        public static ResourceService Res => ResourceService.Instance;
         public ObservableCollection<LvGroupsClass> LvGroupsCollection { get; } =
             ActiveDirectoryService.LoadManagedGroupsViaMembership(new ObservableCollection<LvGroupsClass>());
         public ObservableCollection<string> LvMembersCollection { get; set; } = new();
         private ObservableCollection<string> _groupMembers = new();
 
-        private LvGroupsClass _selectedGroup;
+        private LvGroupsClass _selectedGroup = new()
+        {
+            Cn = string.Empty,
+            DistinguishedName = string.Empty,
+            Description = null,
+            Members = []
+        };
         public LvGroupsClass SelectedGroup
         {
             get => _selectedGroup;
@@ -29,10 +39,9 @@ namespace GM4ManagerWPF.ViewModels
         }
         private void UpdateGroupMembers()
         {
-            GroupMembers = SelectedGroup != null
-                ? new ObservableCollection<string>(
-                    SelectedGroup.Members.Select(ActiveDirectoryService.GetNameFromCN))
-                : new ObservableCollection<string>();
+            GroupMembers = SelectedGroup?.Members != null
+                ? [.. SelectedGroup.Members.Select(ActiveDirectoryService.GetNameFromCN)]
+                : [];
         }
 
 
@@ -47,7 +56,7 @@ namespace GM4ManagerWPF.ViewModels
                 OnPropertyChanged(nameof(SelectedMember));
             }
         }
-        private string _newMemberCN;
+        private string _newMemberCN = string.Empty;
         public string NewMemberCN
         {
             get => _newMemberCN;
@@ -71,7 +80,7 @@ namespace GM4ManagerWPF.ViewModels
             }
 
             // get DN of original list
-            string? memberDn = SelectedGroup.Members.FirstOrDefault(dn =>
+            string? memberDn = SelectedGroup.Members?.FirstOrDefault(dn =>
                 ActiveDirectoryService.GetNameFromCN(dn) == SelectedMember);
 
             if (memberDn == null)
@@ -80,18 +89,14 @@ namespace GM4ManagerWPF.ViewModels
                 return;
             }
 
-            // Entferne aus AD
+            // Remove from AD
             ActiveDirectoryService.RemoveUserFromGroup(SelectedGroup.DistinguishedName, memberDn, SelectedMember);
 
-            // Entferne aus ViewModel
-            SelectedGroup.Members.Remove(memberDn);
+            // Remove from ViewModel
+            SelectedGroup.Members?.Remove(memberDn);
             GroupMembers.Remove(SelectedMember);
             SelectedMember = null;
         }
-
-        // Fix for CS0079: The event 'ToggleButton.Checked' can only appear on the left-hand side of += or -=
-        // The issue is that `cbAsAdmin.Checked` is being used as if it were a property, but it is an event.
-        // To fix this, we need to use the `IsChecked` property of the CheckBox instead.
 
         private void AddSelectedMember(object? parameter)
         {
@@ -110,14 +115,14 @@ namespace GM4ManagerWPF.ViewModels
                 string dn = adSearchWindow.SelectedUserDn;
                 string cn = ActiveDirectoryService.GetNameFromCN(dn);
 
-                if (!SelectedGroup.Members.Contains(dn))
+                if (SelectedGroup.Members != null && !SelectedGroup.Members.Contains(dn))
                 {
                     try
                     {
                         // Use IsChecked property instead of Checked event
                         if (adSearchWindow.cbAsAdmin.IsChecked == true)
                         {
-                            // Add to AD
+                            // Add to AD as Admin
                             ActiveDirectoryService.AddUserToGroupAsAdmin(SelectedGroup.DistinguishedName, dn);
                         }
                         else
@@ -148,8 +153,6 @@ namespace GM4ManagerWPF.ViewModels
             return SelectedGroup != null;
         }
 
-
-
         public ObservableCollection<string> GroupMembers
         {
             get => _groupMembers;
@@ -165,12 +168,18 @@ namespace GM4ManagerWPF.ViewModels
             AddMemberCommand = new RelayCommand(AddSelectedMember, CanAddMember);
             RemoveMemberCommand = new RelayCommand(RemoveSelectedMember, CanRemoveMember);
             LvGroupsCollection = ActiveDirectoryService.LoadManagedGroupsViaMembership(new ObservableCollection<LvGroupsClass>());
+            // get PropertyChanged-Event from ResourceService
+            ResourceService.Instance.PropertyChanged += OnLanguageChanged;          
         }
 
-        public event PropertyChangedEventHandler PropertyChanged;
-        protected void OnPropertyChanged(string propertyName) =>
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-
-        public ICommand RemoveMemberCommand { get; }
+        public event PropertyChangedEventHandler? PropertyChanged;
+        protected void OnPropertyChanged([CallerMemberName] string? name = null) =>
+              PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+        private void OnLanguageChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            Debug.WriteLine("Updating Language");
+                //UpdateDynamicProperties();
+        }
+        public ICommand RemoveMemberCommand { get; }      
     }
 }

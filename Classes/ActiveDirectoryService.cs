@@ -360,7 +360,7 @@ namespace GM4ManagerWPF.Classes
         private static string ResolveSamAccountNameFromDn(string dn)
         {
             using DirectoryEntry userEntry = new($"LDAP://{dn}");
-            string samAccount = userEntry.Properties["sAMAccountName"].Value?.ToString();
+            string? samAccount = userEntry.Properties["sAMAccountName"].Value?.ToString();
             if (string.IsNullOrWhiteSpace(samAccount))
             {
                 throw new Exception("sAMAccountName not found.");

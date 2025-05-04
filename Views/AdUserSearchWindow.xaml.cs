@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using GM4ManagerWPF.Classes;
 using GM4ManagerWPF.Models;
+using GM4ManagerWPF.ViewModels;
 
 
 namespace GM4ManagerWPF.Views
@@ -21,6 +22,7 @@ namespace GM4ManagerWPF.Views
         {
             InitializeComponent();
             SearchBox.KeyDown += SearchBox_KeyDown;
+            this.DataContext = new AdUserSearchWindowViewModel();
         }
 
         private void OnSelectClick(object sender, RoutedEventArgs e)

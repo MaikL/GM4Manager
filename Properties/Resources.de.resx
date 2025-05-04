@@ -159,6 +159,9 @@
   <data name="headerMembers" xml:space="preserve">
     <value>Mitglieder der Gruppe</value>
   </data>
+  <data name="helpForAsAdmin" xml:space="preserve">
+    <value>Gewährt dem hinzugefügten Benutzer selbst Benutzer zu managen.</value>
+  </data>
   <data name="lblCurrentManager" xml:space="preserve">
     <value>Derzeitiger Manager</value>
   </data>
@@ -190,7 +193,8 @@
     <value>Fehlende Berechtigung, fragen sie Ihren Administrator</value>
   </data>
   <data name="msgErrorAddingUser" xml:space="preserve">
-    <value>Fehler beim Hinzufügen des Users/Der Berechtigung:\n{message}</value>
+    <value>Fehler beim Hinzufügen des Users/Der Berechtigung:
+{message}</value>
   </data>
   <data name="msgErrorCouldNotFindMember" xml:space="preserve">
     <value>Kein Benutzer gefunden</value>
@@ -265,6 +269,6 @@
     <value>Benutzer entfernen</value>
   </data>
   <data name="windowtitleAdSearch" xml:space="preserve">
-    <value>Verzeichnissuche</value>
+    <value>Active Directory durchsuchen</value>
   </data>
 </root>

@@ -15,35 +15,16 @@ namespace GM4ManagerWPF
         public Manager()
         {
             InitializeComponent();
-            
+
+            // Initialize LvGroupsCollection to avoid nullability issues
+            LvGroupsCollection = [];
+
             this.DataContext = new ManagerViewModel();
-            LanguageService.LanguageChanged += OnLanguageChanged;
+            //LanguageService.LanguageChanged += OnLanguageChanged;
             LvGroups.Loaded += LvGroups_Loaded;
             LvGroups.SizeChanged += (s, e) => ApplyColumnWidths();
         }
-        public ObservableCollection<LvGroupsClass> LvGroupsCollection { get; set; }
-
-        private void OnLanguageChanged(object? sender, EventArgs e)
-        {
-            UpdateColumnHeaders();
-        }
-        private void UpdateColumnHeaders()
-        {
-            if (LvGroups.View is GridView groupsView)
-            {
-                groupsView.Columns[0].Header = ResourceService.Instance["colGroupName"];
-                groupsView.Columns[1].Header = ResourceService.Instance["colDescription"];
-            }
-
-            if (LvMembers.View is GridView membersView)
-            {
-                membersView.Columns[0].Header = ResourceService.Instance["colMember"];
-            }
-
-            // Update button content if needed
-            BtnAddMember.Content = ResourceService.Instance["btnAddMember"];
-            BtnRemoveMember.Content = ResourceService.Instance["btnRemoveMember"];
-        }
+        public ObservableCollection<LvGroupsClass> LvGroupsCollection { get; set; }       
 
         private void LvGroups_Loaded(object sender, RoutedEventArgs e)
         {
@@ -57,8 +38,8 @@ namespace GM4ManagerWPF
 
                 if (gridView.Columns.Count >= 2)
                 {
-                    gridView.Columns[0].Width = totalWidth * 0.6;
-                    gridView.Columns[1].Width = totalWidth * 0.4;
+                    gridView.Columns[0].Width = totalWidth * 0.59;
+                    gridView.Columns[1].Width = totalWidth * 0.39;
                 }
             }
         }        

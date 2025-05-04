@@ -79,7 +79,7 @@ namespace GM4ManagerWPF.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to remove Member.
+        ///   Looks up a localized string similar to Remove Member.
         /// </summary>
         internal static string btnRemoveMember {
             get {
@@ -502,7 +502,7 @@ namespace GM4ManagerWPF.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to AD Search.
+        ///   Looks up a localized string similar to Search Active Directory.
         /// </summary>
         internal static string windowtitleAdSearch {
             get {
