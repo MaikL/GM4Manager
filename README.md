@@ -16,11 +16,11 @@ group “CS_02_Commercial_RW”.
 If you now add a user to the “CS_02_Commercial_Manager” group as an administrator, 
 this user then receives editing rights for the “CS_02_Commercial_RW” group and can add and remove users (and groups) there.
 If you click on “Add user”, a search dialog for the domain opens.
-!(Seach Dialog for adding a user)[/Screenshots/AddUserFromAD.jpg]
+![Seach Dialog for adding a user](/Screenshots/AddUserFromAD.jpg)
 If the authorizations are sufficent, the user gets added.
-!(adding successful)[/Screenshots/addingSuccessful.jpg]
+![adding successful](/Screenshots/AddingSuccessful.jpg)
 If you want to run this as another user (e.g. you are logged in as john.doe but your administrator account ist a-john.doe)
-there is a solution here : [RunProgramAs](https://github.com/MaikL/RunProgramAs) a smapp PowerShell script to
+there is a solution here : [RunProgramAs](https://github.com/MaikL/RunProgramAs) a small PowerShell script to
 save Credentials and run a program with these credentials.
 
 ## Features
