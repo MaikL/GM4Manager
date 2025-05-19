@@ -180,6 +180,9 @@
   <data name="lblSearchterm" xml:space="preserve">
     <value>Search term</value>
   </data>
+  <data name="menuDark" xml:space="preserve">
+    <value>Dark</value>
+  </data>
   <data name="menuEnglish" xml:space="preserve">
     <value>English</value>
   </data>
@@ -188,6 +191,12 @@
   </data>
   <data name="menuLanguages" xml:space="preserve">
     <value>Languages</value>
+  </data>
+  <data name="menuLight" xml:space="preserve">
+    <value>Light</value>
+  </data>
+  <data name="menuTheme" xml:space="preserve">
+    <value>Theme</value>
   </data>
   <data name="msgAskYourAdministrator" xml:space="preserve">
     <value>Missing Permission, ask your Administrator</value>

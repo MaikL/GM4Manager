@@ -28,7 +28,7 @@ namespace GM4ManagerWPF.ViewModels
             }
         }        
 
-        public ObservableCollection<LdapSearchResult> SearchResults { get; } = new();
+        public ObservableCollection<LdapSearchResult> SearchResults { get; } = [];
 
         private void SearchUsers()
         {

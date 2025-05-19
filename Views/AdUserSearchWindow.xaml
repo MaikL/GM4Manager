@@ -7,7 +7,10 @@
        xmlns:local="clr-namespace:GM4ManagerWPF.Localization"  
        mc:Ignorable="d"  
        Title="{Binding Res[windowtitleAdSearch]}" Height="450" Width="800"  
-       d:DataContext="{d:DesignInstance Type=viewmodels:AdUserSearchWindowViewModel, IsDesignTimeCreatable=True}">
+       d:DataContext="{d:DesignInstance Type=viewmodels:AdUserSearchWindowViewModel, IsDesignTimeCreatable=True}"
+       xmlns:ui="http://schemas.modernwpf.com/2019"
+       ui:ThemeManager.IsThemeAware="True"
+       ui:WindowHelper.UseModernWindowStyle="True">
     <Window.Resources>
         <local:ResourceService x:Key="Res" />
     </Window.Resources>  
@@ -26,13 +29,12 @@
         <StackPanel Orientation="Horizontal" Margin="10 0 0 10" Grid.ColumnSpan="5">
             <Label Content="{Binding Res[lblSearchterm]}" VerticalAlignment="Center" />
             <TextBox x:Name="SearchBox" Width="300" Margin="10 0" KeyDown="SearchBox_KeyDown"/>
-            <Button Content="{Binding Res[btnSearch]}" Width="100" Click="OnSearchClick"/>
-            <CheckBox x:Name="cbAsAdmin" Content="{Binding Res[cbAsAdmin]}" ToolTip="{Binding Res[helpForAsAdmin]}"/>
+            <Button Content="{Binding Res[btnSearch]}" Width="100" Click="OnSearchClick" Style="{DynamicResource AccentButtonStyle}"/>
+            <CheckBox x:Name="cbAsAdmin" Content="{Binding Res[cbAsAdmin]}" Margin="10 0 10 0" ToolTip="{Binding Res[helpForAsAdmin]}"/>
         </StackPanel>
-        <ListBox x:Name="ResultsList" Grid.Column="0" Grid.ColumnSpan="5" Grid.Row="1" Margin="10,10,10,18"   
-                Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}"  
+        <ListBox x:Name="ResultsList" Grid.Column="0" Grid.ColumnSpan="5" Grid.Row="1" Margin="10,10,10,18"
                 ItemsSource="{Binding SearchResults}"/>
         <Button Content="{Binding Path=Res[btnSelect]}" HorizontalAlignment="Right" Margin="0,0,10,10" Grid.Column="4" Grid.Row="2"  
-               VerticalAlignment="Bottom" Width="125" Click="OnSelectClick"/>  
+               VerticalAlignment="Bottom" Width="125" Click="OnSelectClick" Style="{DynamicResource AccentButtonStyle}"/>  
    </Grid>  
 </Window>

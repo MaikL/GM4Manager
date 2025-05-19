@@ -6,6 +6,7 @@
         public required bool OverwriteCurrentDomain { get; set; }
         public required string StartShare { get; set; }
         public required string UserLanguage { get; set; }
+        public required string Theme { get; set; }
 
     }
 }

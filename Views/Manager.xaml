@@ -5,13 +5,15 @@
 			xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
 			xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
             xmlns:viewmodels="clr-namespace:GM4ManagerWPF.ViewModels"
-			mc:Ignorable="d"
+            xmlns:ui="http://schemas.modernwpf.com/2019"            
+			mc:Ignorable="d"            
 			d:DesignHeight="700" d:DesignWidth="900"
-            d:DataContext="{d:DesignInstance Type=viewmodels:ManagerViewModel, IsDesignTimeCreatable=True}">
-    <UserControl.Resources>       
-        <local:ResourceService x:Key="Res" />    
+            d:DataContext="{d:DesignInstance Type=viewmodels:ManagerViewModel, IsDesignTimeCreatable=True}"
+             >
+    <UserControl.Resources>
+        <local:ResourceService x:Key="Res" />
     </UserControl.Resources>
-    <Grid  Background="{DynamicResource {x:Static SystemColors.ControlDarkDarkBrushKey}}">       
+    <Grid>
         <Grid.ColumnDefinitions>           
             <ColumnDefinition Width="40*"/>            
             <ColumnDefinition Width="30*"/>            
@@ -25,7 +27,7 @@
         <ListView x:Name="LvGroups" Grid.Row="0" Grid.ColumnSpan="2"
      			ItemsSource="{Binding LvGroupsCollection}"
      			SelectedItem="{Binding SelectedGroup, Mode=TwoWay}">                       
-            <ListView.View>               
+            <ListView.View>
                 <GridView>
                     <GridViewColumn Header="{Binding Res[colGroupName]}" DisplayMemberBinding="{Binding Cn}"/>
                     <GridViewColumn Header="{Binding Res[colDescription]}" DisplayMemberBinding="{Binding Description}"/>                
@@ -45,10 +47,12 @@
             </ListView>        
         </StackPanel>
         <Button x:Name="BtnAddMember" Grid.Column="2" Content="{Binding Res[btnAddMember]}" 
+                Style="{DynamicResource AccentButtonStyle}"
     			HorizontalAlignment="Left" Grid.Row="1" VerticalAlignment="Top" Margin="0,5,0,0"
-    			Command="{Binding AddMemberCommand}" Background="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}" />
+    			Command="{Binding AddMemberCommand}" />
         <Button x:Name="BtnRemoveMember" Grid.Column="3" Content="{Binding Res[btnRemoveMember]}"
+                Style="{DynamicResource AccentButtonStyle}"
     			HorizontalAlignment="Right" Grid.Row="1" VerticalAlignment="Top" Margin="0,5,5,0"
-    			Command="{Binding RemoveMemberCommand}" Background="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}"/>                   
+    			Command="{Binding RemoveMemberCommand}" />                   
     </Grid>
 </UserControl>

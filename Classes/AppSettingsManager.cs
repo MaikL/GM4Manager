@@ -77,7 +77,8 @@ namespace GM4ManagerWPF.Classes
             Domain = "example.local",
             OverwriteCurrentDomain = false,
             StartShare = @"\\server\share",
-            UserLanguage = "en"
+            UserLanguage = "en",
+            Theme = "Light"
         };
 
         // Changes the current language and saves it to settings
@@ -86,6 +87,15 @@ namespace GM4ManagerWPF.Classes
             Debug.WriteLine($"saving language: {languageCode}");
             // Update setting
             Settings.UserLanguage = languageCode;
+            // Save updated settings
+            Save();
+        }
+        // Changes the current theme and saves it to settings
+        public static void SetTheme(string theme)
+        {
+            Debug.WriteLine($"saving theme: {theme}");
+            // Update setting
+            Settings.Theme = theme;
             // Save updated settings
             Save();
         }

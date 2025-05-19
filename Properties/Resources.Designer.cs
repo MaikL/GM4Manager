@@ -187,6 +187,15 @@ namespace GM4ManagerWPF.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to  Grants the added user permission to manage group members..
+        /// </summary>
+        internal static string helpForAsAdmin {
+            get {
+                return ResourceManager.GetString("helpForAsAdmin", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Current Manager.
         /// </summary>
         internal static string lblCurrentManager {
@@ -241,6 +250,15 @@ namespace GM4ManagerWPF.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Dark.
+        /// </summary>
+        internal static string menuDark {
+            get {
+                return ResourceManager.GetString("menuDark", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to English.
         /// </summary>
         internal static string menuEnglish {
@@ -264,6 +282,24 @@ namespace GM4ManagerWPF.Properties {
         internal static string menuLanguages {
             get {
                 return ResourceManager.GetString("menuLanguages", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Light.
+        /// </summary>
+        internal static string menuLight {
+            get {
+                return ResourceManager.GetString("menuLight", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Theme.
+        /// </summary>
+        internal static string menuTheme {
+            get {
+                return ResourceManager.GetString("menuTheme", resourceCulture);
             }
         }
         
