@@ -12,7 +12,7 @@ using GM4ManagerWPF.Views;
 
 namespace GM4ManagerWPF.ViewModels
 {
-    public class ManagerViewModel : INotifyPropertyChanged
+    public class ManagerUCViewModel : INotifyPropertyChanged
     {
         public static ResourceService Res => ResourceService.Instance;
         public ObservableCollection<LvGroupsClass> LvGroupsCollection { get; } =
@@ -163,7 +163,7 @@ namespace GM4ManagerWPF.ViewModels
             }
         }
 
-        public ManagerViewModel()
+        public ManagerUCViewModel()
         {
             AddMemberCommand = new RelayCommand(AddSelectedMember, CanAddMember);
             RemoveMemberCommand = new RelayCommand(RemoveSelectedMember, CanRemoveMember);

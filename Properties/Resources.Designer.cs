@@ -142,6 +142,15 @@ namespace GM4ManagerWPF.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Edit Permission.
+        /// </summary>
+        internal static string colEditRights {
+            get {
+                return ResourceManager.GetString("colEditRights", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Group Name.
         /// </summary>
         internal static string colGroupName {
@@ -160,11 +169,47 @@ namespace GM4ManagerWPF.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Read / Write.
+        /// </summary>
+        internal static string colModify {
+            get {
+                return ResourceManager.GetString("colModify", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Permissions.
         /// </summary>
         internal static string colPermissions {
             get {
                 return ResourceManager.GetString("colPermissions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Read Only.
+        /// </summary>
+        internal static string colReadAndExecute {
+            get {
+                return ResourceManager.GetString("colReadAndExecute", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Remove User.
+        /// </summary>
+        internal static string colRemoveUser {
+            get {
+                return ResourceManager.GetString("colRemoveUser", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Type.
+        /// </summary>
+        internal static string colType {
+            get {
+                return ResourceManager.GetString("colType", resourceCulture);
             }
         }
         
@@ -246,6 +291,15 @@ namespace GM4ManagerWPF.Properties {
         internal static string lblSearchterm {
             get {
                 return ResourceManager.GetString("lblSearchterm", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Loading Permissions....
+        /// </summary>
+        internal static string loadingPermissions {
+            get {
+                return ResourceManager.GetString("loadingPermissions", resourceCulture);
             }
         }
         
@@ -430,6 +484,24 @@ namespace GM4ManagerWPF.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Starting....
+        /// </summary>
+        internal static string startingText {
+            get {
+                return ResourceManager.GetString("startingText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Explorer.
+        /// </summary>
+        internal static string tabExplorer {
+            get {
+                return ResourceManager.GetString("tabExplorer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Manager.
         /// </summary>
         internal static string tabManager {
@@ -480,6 +552,15 @@ namespace GM4ManagerWPF.Properties {
         internal static string txtGroupName {
             get {
                 return ResourceManager.GetString("txtGroupName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Loading....
+        /// </summary>
+        internal static string txtLoading {
+            get {
+                return ResourceManager.GetString("txtLoading", resourceCulture);
             }
         }
         

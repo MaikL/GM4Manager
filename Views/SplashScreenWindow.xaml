@@ -11,6 +11,12 @@
         <ImageBrush ImageSource="pack://application:,,,/Ressources/GM4ManagerSplash.png"/>
     </Window.Background>
     <Grid>
-        
+        <TextBlock Text="{Binding GroupLoadingStatus}" 
+           FontSize="14" 
+           FontWeight="Bold" 
+           Foreground="White"
+           Margin="10"
+           HorizontalAlignment="Center"
+           VerticalAlignment="Bottom"/>
     </Grid>
 </Window>

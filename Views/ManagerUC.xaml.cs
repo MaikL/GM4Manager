@@ -4,22 +4,24 @@ using System.Windows.Controls;
 using GM4ManagerWPF.Classes;
 using GM4ManagerWPF.Localization;
 using GM4ManagerWPF.ViewModels;
+using GM4ManagerWPF.Models;
+using GM4ManagerWPF.Properties;
 
-namespace GM4ManagerWPF
+namespace GM4ManagerWPF.Views
 {
     /// <summary>
     /// Interaction logic for Manager.xaml
     /// </summary>
-    public partial class Manager : UserControl
+    public partial class ManagerUC : UserControl
     {
-        public Manager()
+        public ManagerUC()
         {
             InitializeComponent();
 
             // Initialize LvGroupsCollection to avoid nullability issues
             LvGroupsCollection = [];
 
-            this.DataContext = new ManagerViewModel();
+            //this.DataContext = new ManagerViewModel();
             //LanguageService.LanguageChanged += OnLanguageChanged;
             LvGroups.Loaded += LvGroups_Loaded;
             LvGroups.SizeChanged += (s, e) => ApplyColumnWidths();

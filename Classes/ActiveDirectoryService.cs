@@ -14,11 +14,12 @@ using GM4ManagerWPF.Properties;
 namespace GM4ManagerWPF.Classes
 {
     internal class ActiveDirectoryService
-    {        
+    {
         /// <summary>
         /// Loads the managed organizational units (OUs) into a ListView.
         /// </summary>
         /// <param name="lvGroups">The ListView to populate with OUs.</param>        
+        // Method to load managed organizational units (OUs) into a collection
         public static ObservableCollection<LvGroupsClass> LoadManagedOUsToCollection(ObservableCollection<LvGroupsClass> LvGroupsCollection)
         {
             if (LicenseManager.UsageMode == LicenseUsageMode.Designtime)
@@ -45,7 +46,7 @@ namespace GM4ManagerWPF.Classes
                 Debug.WriteLine($"selected domain: {domain}");
                 // Search for all OUs managed by the user
                 DirectoryEntry rootDSE = new("LDAP://" + domain);
-
+                // Search for all OUs managed by the user
                 DirectorySearcher searcher = new(rootDSE)
                 {
                     Filter = $"(&(objectCategory=group)(ManagedBy={userDn}))"
@@ -101,7 +102,7 @@ namespace GM4ManagerWPF.Classes
             }
             return LvGroupsCollection;
         }
-
+        // Method to load managed groups via membership into a collection
         public static ObservableCollection<LvGroupsClass> LoadManagedGroupsViaMembership(ObservableCollection<LvGroupsClass> LvGroupsCollection)
         {
             if (LicenseManager.UsageMode == LicenseUsageMode.Designtime)
@@ -136,8 +137,7 @@ namespace GM4ManagerWPF.Classes
                     foreach (SearchResult result in memberSearcher.FindAll())
                     {
                         if (result.Properties["distinguishedName"]?.Count > 0)
-                        {
-                            //string groupDn = result.Properties["distinguishedName"][0].ToString();
+                        {                            
                             string groupDn = result.Properties.Contains("distinguishedName") && result.Properties["distinguishedName"].Count > 0
                                      ? result.Properties["distinguishedName"][0]?.ToString() ?? ""
                                      : "";
@@ -210,7 +210,7 @@ namespace GM4ManagerWPF.Classes
             return LvGroupsCollection;
         }
 
-
+        // Method to get the current domain
         private static string GetCurrentDomain()
         {
             string domain;
@@ -257,7 +257,6 @@ namespace GM4ManagerWPF.Classes
             catch (UnauthorizedAccessException ex)
             {
                 Debug.WriteLine("Permission error: " + ex.Message);
-                // Additional error handling or logging
             }
             catch (Exception ex)
             {
@@ -356,7 +355,7 @@ namespace GM4ManagerWPF.Classes
             }
         }
 
-
+        // Method to resolve the SAM account name from a distinguished name (DN)
         private static string ResolveSamAccountNameFromDn(string dn)
         {
             using DirectoryEntry userEntry = new($"LDAP://{dn}");
@@ -366,7 +365,7 @@ namespace GM4ManagerWPF.Classes
                 throw new Exception("sAMAccountName not found.");
             }
 
-            string domain = GetCurrentDomain(); // Sollte deinen Domainnamen zurückgeben (z. B. "CONTOSO")
+            string domain = GetCurrentDomain(); // should return the domain name
             return $"{domain}\\{samAccount}";
         }
 
@@ -376,6 +375,7 @@ namespace GM4ManagerWPF.Classes
         /// <param name="samAccountName">The SAM account name of the user.</param>
         /// <param name="settings">The application settings.</param>
         /// <returns>The distinguished name of the user, or null if not found.</returns>
+        // Method to get the distinguished name of a user from Active Directory
         public static string GetUserDistinguishedName(string samAccountName)
         {
             string domain = GetCurrentDomain();
@@ -410,7 +410,8 @@ namespace GM4ManagerWPF.Classes
         /// extracts the part before the first ",OU", usally the Name from the whole CN
         /// </summary>
         /// <param name="CN"></param>
-        /// <returns></returns>
+        /// <returns>Name</returns>
+        // Method to extract the name from a common name (CN)
         public static string GetNameFromCN(string CN)
         {
             int indexOfOU = CN.IndexOf(",OU") - 3;
@@ -421,7 +422,7 @@ namespace GM4ManagerWPF.Classes
             }
             return Name;
         }
-
+        // Method to search for users in Active Directory
         public static List<LdapSearchResult> SearchUsers(string searchTerm)
         {
             var results = new List<LdapSearchResult>();
@@ -474,6 +475,7 @@ namespace GM4ManagerWPF.Classes
 
             return results;
         }
+        // Method to get the groups a user belongs to from Active Directory
         public static List<LdapSearchResult> GetMyGroupsFromLdap(string userDn)
         {
             var groups = new List<LdapSearchResult>();
@@ -507,7 +509,5 @@ namespace GM4ManagerWPF.Classes
 
             return groups;
         }
-
-
     }
 }

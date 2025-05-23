@@ -4,21 +4,19 @@
         xmlns:local="clr-namespace:GM4ManagerWPF.Localization"        
         xmlns:av="http://schemas.microsoft.com/expression/blend/2008" 
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-        mc:Ignorable="av" x:Class="GM4ManagerWPF.MainWindow"
+        mc:Ignorable="av" 
+        x:Class="GM4ManagerWPF.MainWindow"
         xmlns:uc="clr-namespace:GM4ManagerWPF"
         Title="GM4Manager - Group Manager for Manager" Height="800" Width="1200"
         Icon="pack://application:,,,/Ressources/GM4ManagerIcon.ico"
         xmlns:ui="http://schemas.modernwpf.com/2019" 
-        xmlns:viewmodels="clr-namespace:GM4ManagerWPF.ViewModels" 
-        av:DataContext="{av:DesignInstance Type=viewmodels:MainWindowViewModel}"
+        xmlns:viewmodels="clr-namespace:GM4ManagerWPF.ViewModels"
         ui:ThemeManager.IsThemeAware="True"
-        ui:WindowHelper.UseModernWindowStyle="True">
+        ui:WindowHelper.UseModernWindowStyle="True"
+        xmlns:views="clr-namespace:GM4ManagerWPF.Views">
     <Window.Style>
         <Style TargetType="Window" BasedOn="{StaticResource {x:Type Window}}"/>
     </Window.Style>
-    <Window.Resources>
-        <local:ResourceService x:Key="Res" />
-    </Window.Resources>
     <Window.WindowStartupLocation>CenterScreen</Window.WindowStartupLocation>
     <DockPanel>
         <Menu DockPanel.Dock="Top">
@@ -34,15 +32,14 @@
         <TabControl>
             <TabItem x:Name="Manager" Header="{Binding Res[tabManager]}">
                 <Grid>
-                    <uc:Manager/>
+                    <!--<views:ManagerUC DataContext="{Binding Manager}" />-->
                 </Grid>
             </TabItem>
-            <!--<TabItem Header="Explorer">
-                <Grid Background="#FFE5E5E5"/>
-            </TabItem>-->
+            <TabItem x:Name="Explorer" Header="{Binding Res[tabExplorer]}">
+                <Grid>
+                    <views:ExplorerUC DataContext="{Binding Explorer}" />
+                </Grid>
+            </TabItem>
         </TabControl>
     </DockPanel>
-    
-
-
 </Window>

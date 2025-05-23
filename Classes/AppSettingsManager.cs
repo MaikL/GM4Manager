@@ -76,7 +76,7 @@ namespace GM4ManagerWPF.Classes
         {
             Domain = "example.local",
             OverwriteCurrentDomain = false,
-            StartShare = @"\\server\share",
+            StartShare = @"C:\Windows",
             UserLanguage = "en",
             Theme = "Light"
         };

@@ -24,6 +24,8 @@
 
   <ItemGroup>
     <PackageReference Include="ModernWpfUI" Version="0.9.6" />
+    <PackageReference Include="Ookii.Dialogs.Wpf" Version="5.0.1" />
+    <PackageReference Include="System.DirectoryServices.AccountManagement" Version="9.0.5" />
     <PackageReference Include="System.Text.Json" Version="9.0.4" />
   </ItemGroup>
 

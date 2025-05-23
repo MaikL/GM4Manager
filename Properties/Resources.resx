@@ -144,14 +144,29 @@
   <data name="colDescription" xml:space="preserve">
     <value>Description</value>
   </data>
+  <data name="colEditRights" xml:space="preserve">
+    <value>Edit Permission</value>
+  </data>
   <data name="colGroupName" xml:space="preserve">
     <value>Group Name</value>
   </data>
   <data name="colMember" xml:space="preserve">
     <value>Member</value>
   </data>
+  <data name="colModify" xml:space="preserve">
+    <value>Read / Write</value>
+  </data>
   <data name="colPermissions" xml:space="preserve">
     <value>Permissions</value>
+  </data>
+  <data name="colReadAndExecute" xml:space="preserve">
+    <value>Read Only</value>
+  </data>
+  <data name="colRemoveUser" xml:space="preserve">
+    <value>Remove User</value>
+  </data>
+  <data name="colType" xml:space="preserve">
+    <value>Type</value>
   </data>
   <data name="colUser" xml:space="preserve">
     <value>User</value>
@@ -179,6 +194,9 @@
   </data>
   <data name="lblSearchterm" xml:space="preserve">
     <value>Search term</value>
+  </data>
+  <data name="loadingPermissions" xml:space="preserve">
+    <value>Loading Permissions...</value>
   </data>
   <data name="menuDark" xml:space="preserve">
     <value>Dark</value>
@@ -240,6 +258,12 @@
   <data name="msgUserSucessfullyRemoved" xml:space="preserve">
     <value>User was successfully removed:\n{member}</value>
   </data>
+  <data name="startingText" xml:space="preserve">
+    <value>Starting...</value>
+  </data>
+  <data name="tabExplorer" xml:space="preserve">
+    <value>Explorer</value>
+  </data>
   <data name="tabManager" xml:space="preserve">
     <value>Manager</value>
   </data>
@@ -257,6 +281,9 @@
   </data>
   <data name="txtGroupName" xml:space="preserve">
     <value>Group Name</value>
+  </data>
+  <data name="txtLoading" xml:space="preserve">
+    <value>Loading...</value>
   </data>
   <data name="txtMember" xml:space="preserve">
     <value>Member</value>

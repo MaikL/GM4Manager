@@ -1,4 +1,5 @@
-﻿using System;
+﻿using GM4ManagerWPF.ViewModels;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -19,9 +20,15 @@ namespace GM4ManagerWPF
     /// </summary>
     public partial class SplashScreenWindow : Window
     {
+        public SplashScreenViewModel ViewModel { get; } = new SplashScreenViewModel();
         public SplashScreenWindow()
         {
             InitializeComponent();
+            DataContext = ViewModel;
+        }
+        public void UpdateStatus(string message)
+        {
+            ViewModel.GroupLoadingStatus = message;
         }
         public void BeginFadeOut(Action onComplete)
         {

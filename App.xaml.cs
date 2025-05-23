@@ -1,5 +1,8 @@
-﻿using System.Windows;
-using GM4ManagerWPF.Classes;
+﻿using GM4ManagerWPF.Classes;
+using GM4ManagerWPF.Helpers;
+using GM4ManagerWPF.ViewModels;
+using System.Diagnostics;
+using System.Windows;
 
 namespace GM4ManagerWPF
 {
@@ -13,10 +16,19 @@ namespace GM4ManagerWPF
         protected override async void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
-
+            var sw = Stopwatch.StartNew();
+            
             // Show splash  
             splashScreen = new SplashScreenWindow();
             splashScreen.Show();
+
+            var groups = await GroupHelper.GetUserGroupsForCurrentUserAsync(status =>
+            {
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    splashScreen.UpdateStatus(status);
+                });
+            });
 
             try
             {
@@ -40,7 +52,10 @@ namespace GM4ManagerWPF
                 {
                     splashScreen.Close();
                 });
-            };
+            };            
+
+            sw.Stop();
+            Debug.WriteLine($"Splash dauerte: {sw.ElapsedMilliseconds} ms");
 
             mainWindow.Show(); // Triggers Loaded event  
         }
