@@ -1,11 +1,7 @@
-﻿using System.Collections.ObjectModel;
+﻿using GM4ManagerWPF.Models;
+using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Controls;
-using GM4ManagerWPF.Classes;
-using GM4ManagerWPF.Localization;
-using GM4ManagerWPF.ViewModels;
-using GM4ManagerWPF.Models;
-using GM4ManagerWPF.Properties;
 
 namespace GM4ManagerWPF.Views
 {
@@ -21,12 +17,10 @@ namespace GM4ManagerWPF.Views
             // Initialize LvGroupsCollection to avoid nullability issues
             LvGroupsCollection = [];
 
-            //this.DataContext = new ManagerViewModel();
-            //LanguageService.LanguageChanged += OnLanguageChanged;
             LvGroups.Loaded += LvGroups_Loaded;
             LvGroups.SizeChanged += (s, e) => ApplyColumnWidths();
         }
-        public ObservableCollection<LvGroupsClass> LvGroupsCollection { get; set; }       
+        public ObservableCollection<LvGroupsClass> LvGroupsCollection { get; set; }
 
         private void LvGroups_Loaded(object sender, RoutedEventArgs e)
         {
@@ -44,6 +38,6 @@ namespace GM4ManagerWPF.Views
                     gridView.Columns[1].Width = totalWidth * 0.39;
                 }
             }
-        }        
+        }
     }
 }

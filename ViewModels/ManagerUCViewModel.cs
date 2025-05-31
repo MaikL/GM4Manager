@@ -1,14 +1,15 @@
-﻿using System.Collections.ObjectModel;
+﻿using GM4ManagerWPF.Classes;
+using GM4ManagerWPF.Helpers;
+using GM4ManagerWPF.Localization;
+using GM4ManagerWPF.Properties;
+using GM4ManagerWPF.Views;
+using GM4ManagerWPF.Models;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Input;
-using GM4ManagerWPF.Classes;
-using GM4ManagerWPF.Helpers;
-using GM4ManagerWPF.Localization;
-using GM4ManagerWPF.Properties;
-using GM4ManagerWPF.Views;
 
 namespace GM4ManagerWPF.ViewModels
 {
@@ -16,9 +17,11 @@ namespace GM4ManagerWPF.ViewModels
     {
         public static ResourceService Res => ResourceService.Instance;
         public ObservableCollection<LvGroupsClass> LvGroupsCollection { get; } =
-            ActiveDirectoryService.LoadManagedGroupsViaMembership(new ObservableCollection<LvGroupsClass>());
-        public ObservableCollection<string> LvMembersCollection { get; set; } = new();
-        private ObservableCollection<string> _groupMembers = new();
+                ActiveDirectoryService.LoadManagedGroupsViaMembership(new ObservableCollection<LvGroupsClass>());
+        public ObservableCollection<string> LvMembersCollection { get; set; } = [];
+        private ObservableCollection<GroupMemberDisplay> _groupMembers = [];
+        public ICommand AddMemberCommand { get; }
+        private GroupMemberDisplay? _selectedMember;       
 
         private LvGroupsClass _selectedGroup = new()
         {
@@ -39,15 +42,23 @@ namespace GM4ManagerWPF.ViewModels
         }
         private void UpdateGroupMembers()
         {
-            GroupMembers = SelectedGroup?.Members != null
-                ? [.. SelectedGroup.Members.Select(ActiveDirectoryService.GetNameFromCN)]
-                : [];
+            GroupMembers.Clear();
+
+            if (SelectedGroup?.Members != null)
+            {
+                foreach (var member in SelectedGroup.Members)
+                {
+                    GroupMembers.Add(new GroupMemberDisplay
+                    {
+                        Name = ActiveDirectoryService.GetNameFromCN(member),
+                        Icon = member.ObjectClass == "user" ? "👤" :
+                               member.ObjectClass == "group" ? "👥" : "❓"
+                    });
+                }
+            }
         }
 
-
-        public ICommand AddMemberCommand { get; }
-        private string? _selectedMember;
-        public string? SelectedMember
+        public GroupMemberDisplay? SelectedMember
         {
             get => _selectedMember;
             set
@@ -69,35 +80,47 @@ namespace GM4ManagerWPF.ViewModels
 
         private bool CanRemoveMember(object? parameter)
         {
+            Debug.WriteLine($"CanRemoveMember called with SelectedGroup: {SelectedGroup?.Cn}, SelectedMember: {SelectedMember?.Name}");
             return SelectedGroup != null && SelectedMember != null;
         }
 
         private void RemoveSelectedMember(object? parameter)
         {
-            if (SelectedGroup == null || SelectedMember == null)
+            if (SelectedGroup == null || SelectedMember == null || SelectedMember.Name == null)
             {
                 return;
             }
 
-            // get DN of original list
-            string? memberDn = SelectedGroup.Members?.FirstOrDefault(dn =>
-                ActiveDirectoryService.GetNameFromCN(dn) == SelectedMember);
+            // Find the original LdapMember object in the group based on the display name
+            var memberToRemove = SelectedGroup.Members?
+                .FirstOrDefault(m => ActiveDirectoryService.GetNameFromCN(m) == SelectedMember.Name);
 
-            if (memberDn == null)
+            if (memberToRemove?.DistinguishedName == null)
             {
                 MessageBox.Show(Resources.msgErrorCouldNotFindMember, Resources.msgHeaderError, MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
 
-            // Remove from AD
-            ActiveDirectoryService.RemoveUserFromGroup(SelectedGroup.DistinguishedName, memberDn, SelectedMember);
+            // Remove the member from Active Directory
+            ActiveDirectoryService.RemoveUserFromGroup(
+                SelectedGroup.DistinguishedName,
+                memberToRemove.DistinguishedName,
+                SelectedMember.Name);
 
-            // Remove from ViewModel
-            SelectedGroup.Members?.Remove(memberDn);
+            // Remove from the internal group member list
+            SelectedGroup.Members?.Remove(memberToRemove);
+
+            // Remove from the UI-bound collection
             GroupMembers.Remove(SelectedMember);
+
+            // Clear the selection
             SelectedMember = null;
         }
 
+        /// <summary>
+        /// Opens a separate Window to search for and add a member to the selected group.
+        /// </summary>
+        /// <param name="parameter"></param>
         private void AddSelectedMember(object? parameter)
         {
             if (SelectedGroup == null)
@@ -106,7 +129,7 @@ namespace GM4ManagerWPF.ViewModels
                 return;
             }
 
-            // Open AD user search window
+            // Open the Active Directory user search window
             var adSearchWindow = new AdUserSearchWindow();
             bool? result = adSearchWindow.ShowDialog();
 
@@ -115,25 +138,44 @@ namespace GM4ManagerWPF.ViewModels
                 string dn = adSearchWindow.SelectedUserDn;
                 string cn = ActiveDirectoryService.GetNameFromCN(dn);
 
-                if (SelectedGroup.Members != null && !SelectedGroup.Members.Contains(dn))
+                
+                if (SelectedGroup.Members == null)
+                {
+                    SelectedGroup.Members = [];
+                }
+                // Check if the user is already in the group
+                bool alreadyInGroup = SelectedGroup.Members.Any(m => m.DistinguishedName?.Equals(dn, StringComparison.OrdinalIgnoreCase) == true);
+
+                if (!alreadyInGroup)
                 {
                     try
                     {
-                        // Use IsChecked property instead of Checked event
+                        // Add the user to the group in Active Directory
                         if (adSearchWindow.cbAsAdmin.IsChecked == true)
                         {
-                            // Add to AD as Admin
                             ActiveDirectoryService.AddUserToGroupAsAdmin(SelectedGroup.DistinguishedName, dn);
                         }
                         else
                         {
-                            // Add to AD
                             ActiveDirectoryService.AddUserToGroup(SelectedGroup.DistinguishedName, dn);
                         }
 
-                        // Update ViewModel
-                        SelectedGroup.Members.Add(dn);
-                        GroupMembers.Add(cn);
+                        // Create a new LdapMember object
+                        var newMember = new LdapMember
+                        {
+                            DistinguishedName = dn,
+                            ObjectClass = "user" // Assuming only users are added via this dialog
+                        };
+
+                        // Add to the internal group member list
+                        SelectedGroup.Members.Add(newMember);
+
+                        // Add to the UI-bound collection with icon
+                        GroupMembers.Add(new GroupMemberDisplay
+                        {
+                            Name = cn,
+                            Icon = "👤"
+                        });
                     }
                     catch (Exception ex)
                     {
@@ -148,12 +190,13 @@ namespace GM4ManagerWPF.ViewModels
             }
         }
 
+
         private bool CanAddMember(object? parameter)
         {
             return SelectedGroup != null;
         }
 
-        public ObservableCollection<string> GroupMembers
+        public ObservableCollection<GroupMemberDisplay> GroupMembers
         {
             get => _groupMembers;
             set
@@ -171,6 +214,42 @@ namespace GM4ManagerWPF.ViewModels
             // get PropertyChanged-Event from ResourceService
             ResourceService.Instance.PropertyChanged += OnLanguageChanged;          
         }
+        public async Task InitializeAsync(Action<string>? reportStatus = null)
+        {
+            try
+            {
+                reportStatus?.Invoke("Loading Active Directory groups...");
+
+                // Load the managed groups and their members
+                await LoadManagedGroupsViaMembership();
+                reportStatus?.Invoke("Manager is ready.");
+            }
+            catch (Exception ex)
+            {
+                reportStatus?.Invoke("Failed to load Manager data.");
+                Debug.WriteLine($"[ManagerUC] Initialization error: {ex.Message}");
+            }
+        }
+        private async Task LoadManagedGroupsViaMembership()
+        {
+            // Simulate async AD group loading
+            await Task.Delay(100); // Remove in production
+
+            var groups = ActiveDirectoryService.LoadManagedGroupsViaMembership(new ObservableCollection<LvGroupsClass>());
+
+            // Replace or update your bound collection
+            LvGroupsCollection.Clear();
+            foreach (var group in groups)
+            {
+                LvGroupsCollection.Add(group);
+            }
+
+            // Optionally auto-select the first group
+            if (LvGroupsCollection.Count > 0)
+                SelectedGroup = LvGroupsCollection[0];
+        }
+
+
 
         public event PropertyChangedEventHandler? PropertyChanged;
         protected void OnPropertyChanged([CallerMemberName] string? name = null) =>

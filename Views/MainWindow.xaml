@@ -20,6 +20,11 @@
     <Window.WindowStartupLocation>CenterScreen</Window.WindowStartupLocation>
     <DockPanel>
         <Menu DockPanel.Dock="Top">
+            <Menu.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <DockPanel HorizontalAlignment="Stretch"/>
+                </ItemsPanelTemplate>
+            </Menu.ItemsPanel>
             <MenuItem Header="{Binding Res[menuLanguages]}">
                 <MenuItem Header="{Binding Res[menuEnglish]}" Click="SetLanguage" Tag="en"/>
                 <MenuItem Header="{Binding Res[menuGerman]}" Click="SetLanguage" Tag="de"/>
@@ -28,11 +33,15 @@
                 <MenuItem Header="{Binding Res[menuDark]}" Click="SetThemeDark"/>
                 <MenuItem Header="{Binding Res[menuLight]}" Click="SetThemeLight"/>
             </MenuItem>
+            <MenuItem Header="{Binding ManagerName}" HorizontalAlignment="Right" FlowDirection="RightToLeft">
+                
+            </MenuItem>
         </Menu>
-        <TabControl>
+        <TabControl x:Name="MainTabControl"
+            SelectedIndex="{Binding SelectedTabIndex, Mode=TwoWay}">
             <TabItem x:Name="Manager" Header="{Binding Res[tabManager]}">
                 <Grid>
-                    <!--<views:ManagerUC DataContext="{Binding Manager}" />-->
+                    <views:ManagerUC DataContext="{Binding Manager}" />
                 </Grid>
             </TabItem>
             <TabItem x:Name="Explorer" Header="{Binding Res[tabExplorer]}">

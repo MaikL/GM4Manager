@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using GM4ManagerWPF.Properties;
 using System.Security.Principal;
 
 namespace GM4ManagerWPF.Helpers
@@ -38,7 +31,8 @@ namespace GM4ManagerWPF.Helpers
                         var name = group.Translate(typeof(NTAccount)).Value;
                         result.Add(name);
 
-                        reportStatus?.Invoke($"Lade Gruppe: {name}");
+                        string reportText = Resources.loadGroup.Replace("{name}", name);
+                        reportStatus?.Invoke(reportText);
                     }
                     catch
                     {

@@ -35,6 +35,7 @@ save Credentials and run a program with these credentials.
 
 - **.NET 8 SDK**: Ensure the .NET 8 SDK is installed.
 - **Development Environment**: Visual Studio 2022 or any IDE that supports WPF.
+- https://github.com/Kinnara/ModernWpf
 
 ## Installation
 
@@ -58,12 +59,15 @@ Download [GM4ManagerSetup.exe](Output/GM4ManagerSetup.exe)
 
 - The start of the application can take a while, especially if you are in a lot of security groups.
 - Ensure all resources (e.g., icons and images) are correctly included. See [Troubleshooting](#troubleshooting).
+- If you are on a VPN and in a lot of Security Groups it can take over a minute to launch
 
 ## Troubleshooting
 
 - **Missing Resources**: Verify that the files are in the correct folder and their `Build Action` is set to `Resource`.
 - **Path Issues**: Ensure the paths in the XAML files are correct.
-
+- **Performance Issues**: If the application is slow, check the network connection and ensure the domain controller is reachable. If you have a lot of Security Groups it can take a while to load the application.
+- **Permissions**: Ensure you have the necessary permissions to manage groups and members in Active Directory.
+- **Share Folders**: If you are using this application to manage shared folders, ensure that the user has the necessary permissions to modify group memberships. Especially the share permissions on the share folder itself.
 ## Contributing
 
 Contributions are welcome! Fork the repository, make your changes, and submit a pull request.
@@ -74,4 +78,4 @@ This project is licensed under the [GPL 3.0 License](LICENSE.md).
 
 ---
 
-Thank you for using GM4ManagerWPF!   
+Thank you for using GM4Manager!   

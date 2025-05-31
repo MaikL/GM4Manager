@@ -19,6 +19,14 @@ namespace GM4ManagerWPF
 
             this.DataContext = new MainWindowViewModel();
 
+            Loaded += async (_, __) =>
+            {
+                if (DataContext is MainWindowViewModel vm)
+                {
+                    await vm.InitializeAsync(msg => Console.WriteLine(msg)); // optional status reporting
+                }
+            };
+
             if (AppSettingsManager.Settings.Theme == "Dark")
             {
                 SetThemeDark(null, null);
@@ -29,7 +37,7 @@ namespace GM4ManagerWPF
             }
 
             sw.Stop();
-            Debug.WriteLine($"MainWindow dauerte: {sw.ElapsedMilliseconds} ms");
+            Debug.WriteLine($"MainWindow took: {sw.ElapsedMilliseconds} ms");
         }
         private void SetThemeDark(object? sender, RoutedEventArgs? e)
         {

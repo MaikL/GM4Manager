@@ -14,7 +14,7 @@ AppPublisher=MaikL
 AppPublisherURL=https://github.com/MaikL/GM4Manager
 
 [Files]
-Source: "bin\Release\net8.0-windows\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "bin\Release\net8.0-windows\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs;
 
 [Icons]
 Name: "{group}\GM4Manager"; Filename: "{app}\GM4Manager.exe"

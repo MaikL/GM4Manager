@@ -1,12 +1,7 @@
 ﻿using GM4ManagerWPF.Localization;
 using GM4ManagerWPF.Properties;
-using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace GM4ManagerWPF.ViewModels
 {

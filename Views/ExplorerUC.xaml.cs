@@ -1,16 +1,10 @@
-﻿using GM4ManagerWPF.Classes;
-using GM4ManagerWPF.Localization;
-using GM4ManagerWPF.Models;
-using GM4ManagerWPF.Properties;
+﻿using GM4ManagerWPF.Models;
 using GM4ManagerWPF.ViewModels;
-using Ookii.Dialogs.Wpf;
-using System.Collections.ObjectModel;
+using ModernWpf;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.IO;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
 
 namespace GM4ManagerWPF.Views
 {
@@ -22,8 +16,10 @@ namespace GM4ManagerWPF.Views
         private ExplorerUCViewModel ViewModel => (ExplorerUCViewModel)DataContext;
         public ExplorerUC()
         {
+            this.Cursor = System.Windows.Input.Cursors.Wait;
             InitializeComponent();
             DataContextChanged += OnDataContextChanged;
+            this.Cursor = null;
         }
 
         private void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
@@ -47,8 +43,8 @@ namespace GM4ManagerWPF.Views
         private void ViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
             if (e.PropertyName is nameof(ViewModel.HeaderMember) or
-                                  nameof(ViewModel.HeaderModify) or
-                                  nameof(ViewModel.HeaderReadAndExecute))
+                                  nameof(ViewModel.HeaderModify)
+                                  )
             {
                 UpdateGridHeaders();
             }
@@ -56,14 +52,13 @@ namespace GM4ManagerWPF.Views
 
         private void UpdateGridHeaders()
         {
-            if (PermissionsGrid.Columns.Count < 3)
+            if (PermissionsGrid.Columns.Count < 2)
             {
                 return;
             }
 
             PermissionsGrid.Columns[0].Header = ViewModel.HeaderMember;
             PermissionsGrid.Columns[1].Header = ViewModel.HeaderModify;
-            PermissionsGrid.Columns[2].Header = ViewModel.HeaderReadAndExecute;
         }
     }
 }

@@ -14,15 +14,23 @@
 
   <ItemGroup>
     <None Remove="GM4ManagerSplash.png" />
+    <None Remove="Ressources\folder_closed.png" />
+    <None Remove="Ressources\folder_open.png" />
     <None Remove="Ressources\GM4ManagerIcon.png" />
     <None Remove="Ressources\GM4ManagerSplash.png" />
+    <None Remove="Ressources\Icons\edit.png" />
+    <None Remove="Ressources\Icons\readonly.png" />
   </ItemGroup>
 
   <ItemGroup>
+    <Resource Include="Ressources\Icons\edit.png" />
+    <Resource Include="Ressources\Icons\folder.png" />
+    <Resource Include="Ressources\Icons\folder_open.png" />
     <Resource Include="Ressources\GM4ManagerIcon.ico" />
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
     <PackageReference Include="ModernWpfUI" Version="0.9.6" />
     <PackageReference Include="Ookii.Dialogs.Wpf" Version="5.0.1" />
     <PackageReference Include="System.DirectoryServices.AccountManagement" Version="9.0.5" />
@@ -36,6 +44,7 @@
       <PackagePath>\</PackagePath>
     </Resource>
     <Resource Include="Ressources\GM4ManagerSplash.png" />
+    <Resource Include="Ressources\Icons\readonly.png" />
   </ItemGroup>
 
   <ItemGroup>
@@ -52,5 +61,9 @@
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
-
+<Target Name="RemoveSatelliteAssemblies" AfterTargets="ResolveAssemblyReferences">
+  <ItemGroup>
+    <ReferenceCopyLocalPaths Remove="@(ReferenceSatellitePaths)" />
+  </ItemGroup>
+</Target>
 </Project>

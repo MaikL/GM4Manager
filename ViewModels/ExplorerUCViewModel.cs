@@ -3,6 +3,7 @@ using GM4ManagerWPF.Helpers;
 using GM4ManagerWPF.Localization;
 using GM4ManagerWPF.Models;
 using GM4ManagerWPF.Properties;
+using GM4ManagerWPF.Views;
 using Ookii.Dialogs.Wpf;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -11,23 +12,21 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Security.AccessControl;
 using System.Security.Principal;
+using System.Windows;
+//using System.Windows.Forms;
 using System.Windows.Input;
 
 namespace GM4ManagerWPF.ViewModels
 {
     public class ExplorerUCViewModel : INotifyPropertyChanged
-    {
-        public static ResourceService Res => ResourceService.Instance;
-        public ObservableCollection<DirectoryNodeViewModel> RootItems { get; } = [];
-
-        private string _selectedPath = string.Empty;
+    {        
         public string SelectedPath
         {
             get => _selectedPath;
             set { _selectedPath = value; OnPropertyChanged(); }
         }
 
-        private ObservableCollection<PermissionInfo> _currentPermissions = [];
+
         public ObservableCollection<PermissionInfo> CurrentPermissions
         {
             get => _currentPermissions;
@@ -37,43 +36,25 @@ namespace GM4ManagerWPF.ViewModels
                 OnPropertyChanged();
             }
         }
-
-        public List<string> CurrentUserGroups { get; private set; } = [];
-        public async Task InitializeAsync(Action<string>? reportStatus = null)
+        public ICommand AddMemberCommand { get; }
+        public string NewFolderName
         {
-            reportStatus?.Invoke("Lade Benutzergruppen...");
-            CurrentUserGroups = await GroupHelper.GetUserGroupsForCurrentUserAsync(reportStatus);
-        }
-
-        public ICommand OpenFolderDialogCommand { get; }
-        public ICommand EditPermissionCommand { get; }
-        public ICommand RemovePermissionCommand { get; }
-
-        private void OpenFolderDialog(object? obj)
-        {
-            var dialog = new VistaFolderBrowserDialog
+            get => _newFolderName;
+            set
             {
-                Description = Resources.txtPlaseSelectNetworkDirectory,
-                UseDescriptionForTitle = true,
-                ShowNewFolderButton = false,
-                SelectedPath = SelectedPath
-            };
-            Debug.WriteLine($"Selected path: {dialog.SelectedPath}");
-            bool? result = dialog.ShowDialog();
-
-            if (result == true)
-            {
-                SelectedPath = dialog.SelectedPath;
-                AppSettingsManager.Settings.StartShare = SelectedPath;
-                Debug.WriteLine($"Selected path: {SelectedPath}");
-                AppSettingsManager.Save(); // Save the selected path to settings
-                // Clearing RootItems for new loading
-                RootItems.Clear();
-
-                Task.Run(() => LoadRootDirectoriesAsync());
-
+                _newFolderName = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(CanCreateFolder));
             }
         }
+
+        private bool _disableInheritance;
+        public bool DisableInheritance
+        {
+            get => _disableInheritance;
+            set => SetProperty(ref _disableInheritance, value);
+        }
+
         private DirectoryNodeViewModel? _selectedNode;
         public DirectoryNodeViewModel? SelectedNode
         {
@@ -84,92 +65,14 @@ namespace GM4ManagerWPF.ViewModels
                 {
                     _selectedNode = value;
                     OnPropertyChanged();
-                    _ = LoadPermissionsForSelectedNodeAsync(); // fire & forget
+                    _ = LoadPermissionsForSelectedNodeAsync(); // fire & forget                    
                 }
             }
-        }
+        }        
+
         private CancellationTokenSource? _cts;
-        
 
-        private async Task LoadPermissionsForSelectedNodeAsync()
-        {
-            var sw2 = Stopwatch.StartNew();
-
-            _cts?.Cancel();
-            _cts = new CancellationTokenSource();
-            var token = _cts.Token;
-
-            try
-            {
-                await Task.Delay(150, token); // debounce
-                if (SelectedNode != null && Directory.Exists(SelectedNode.FullPath))
-                {
-                    await LoadPermissionsAsync(SelectedNode.FullPath);
-                }
-            }
-            catch (TaskCanceledException)
-            {
-                // Ignored
-            }
-
-            sw2.Stop();
-            Debug.WriteLine($"LoadPermissionsForSelectedNodeAsync took: {sw2.ElapsedMilliseconds} ms");
-        }
         public string? SelectedFolderPath { get; set; }
-        public async Task LoadPermissionsAsync(string folderPath, Action<string>? reportStatus = null)
-        {
-            SelectedFolderPath = folderPath;
-            IsLoadingPermissions = true;
-
-            try
-            {
-                // Stelle sicher, dass CurrentUserGroups geladen ist
-                if (CurrentUserGroups == null || !CurrentUserGroups.Any())
-                {
-                    reportStatus?.Invoke("Lade Benutzergruppen...");
-                    CurrentUserGroups = await GroupHelper.GetUserGroupsForCurrentUserAsync(reportStatus);
-                }
-
-                var result = await Task.Run(() =>
-                {
-                    var dirInfo = new DirectoryInfo(folderPath);
-                    var acl = dirInfo.GetAccessControl();
-                    var accessRules = acl.GetAccessRules(true, true, typeof(NTAccount));
-
-                    var list = new List<PermissionInfo>();
-                    foreach (FileSystemAccessRule rule in accessRules)
-                    {
-                        string identity = rule.IdentityReference.Value;
-
-                        if (CurrentUserGroups.Any(g => identity.EndsWith(g, StringComparison.OrdinalIgnoreCase)))
-                        {
-                            list.Add(new PermissionInfo
-                            {
-                                IdentityReference = identity,
-                                CanModify = rule.FileSystemRights.HasFlag(FileSystemRights.Modify),
-                                CanReadExecute = rule.FileSystemRights.HasFlag(FileSystemRights.ReadAndExecute),
-                                Rights = rule.FileSystemRights,
-                            });
-                        }
-                    }
-                    return list;
-                });
-
-                CurrentPermissions = new ObservableCollection<PermissionInfo>(result);
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine("Failed to load permissions: " + ex.Message);
-                CurrentPermissions = new ObservableCollection<PermissionInfo>();
-            }
-            finally
-            {
-                IsLoadingPermissions = false;
-            }
-        }
-
-
-
         private string? _headerMember;
         public string HeaderMember
         {
@@ -202,62 +105,207 @@ namespace GM4ManagerWPF.ViewModels
             }
         }
 
-        public ExplorerUCViewModel()
+        private bool _isLoadingPermissions;
+        public bool IsLoadingPermissions
         {
-            var sw1 = Stopwatch.StartNew();
-            var sw2 = Stopwatch.StartNew();
+            get => _isLoadingPermissions;
+            set
+            {
+                _isLoadingPermissions = value;
+                OnPropertyChanged();
+            }
+        }
 
+        public event PropertyChangedEventHandler? PropertyChanged;
+
+        public static ResourceService Res => ResourceService.Instance;
+        public ObservableCollection<DirectoryNodeViewModel> RootItems { get; } = [];
+
+        private string _selectedPath = string.Empty;
+        private ObservableCollection<PermissionInfo> _currentPermissions = [];
+        private string _newFolderName = string.Empty;
+        public bool CanCreateFolder =>
+            !string.IsNullOrWhiteSpace(NewFolderName) && SelectedPath != null;
+
+        public List<string> CurrentUserGroups { get; private set; } = [];
+
+        public ICommand CreateNewFolderCommand => new RelayCommand(CreateNewFolder, () => CanCreateFolder);
+
+        public ICommand OpenFolderDialogCommand { get; }
+        
+        public RelayCommand RemoveUserCommand { get; }
+
+        /// <summary>
+        /// Initializes the ViewModel by loading the current user's group memberships.
+        /// </summary>
+        public async Task InitializeAsync(Action<string>? reportStatus = null)
+        {
+            reportStatus?.Invoke(Resources.loadingPermissions);
+            CurrentUserGroups = await GroupHelper.GetUserGroupsForCurrentUserAsync(reportStatus);
+        }
+        /// <summary>
+        /// Loads NTFS permissions for a given folder path and updates the UI.
+        /// </summary>
+        public async Task LoadPermissionsAsync(string folderPath, Action<string>? reportStatus = null)
+        {
+            SelectedFolderPath = folderPath;
+            IsLoadingPermissions = true;
+            string currentDomain = ActiveDirectoryService.GetNetbiosDomain();
+
+            try
+            {
+                // make sure, that CurrentUserGroups is loaded
+                if (CurrentUserGroups == null || CurrentUserGroups.Count == 0)
+                {
+                    reportStatus?.Invoke(Resources.loadingPermissions);
+                    CurrentUserGroups = await GroupHelper.GetUserGroupsForCurrentUserAsync(reportStatus);
+                }
+
+                var result = await Task.Run(() =>
+                {
+                    var dirInfo = new DirectoryInfo(folderPath);
+                    var acl = dirInfo.GetAccessControl();
+                    var accessRules = acl.GetAccessRules(true, true, typeof(NTAccount));
+
+                    var list = new List<PermissionInfo>();
+                    foreach (FileSystemAccessRule rule in accessRules)
+                    {
+                        string identity = rule.IdentityReference.Value;
+                        Debug.WriteLine($"Processing identity in LoadPermissionsAsync: {identity}");
+                        if (identity.StartsWith(currentDomain + "\\", StringComparison.OrdinalIgnoreCase))
+                        {
+                            string DisplayName = identity.Split('\\').Last();
+                            list.Add(new PermissionInfo
+                            {
+                                IdentityReference = DisplayName,
+                                CanModify = rule.FileSystemRights.HasFlag(FileSystemRights.Modify),
+                                CanReadExecute = rule.FileSystemRights.HasFlag(FileSystemRights.ReadAndExecute),
+                                Rights = rule.FileSystemRights,
+                            });
+                        }
+                    }
+                    return list;
+                });
+
+                CurrentPermissions.Clear();
+                foreach (var item in result)
+                {
+                    CurrentPermissions.Add(item);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("Failed to load permissions: " + ex.Message);
+                string message = Resources.msgFailedToLoadPermissions.Replace("{message}", ex.Message);
+                MessageBox.Show(message, Resources.msgHeaderError, MessageBoxButton.OK, MessageBoxImage.Error);
+                CurrentPermissions = [];
+            }
+            finally
+            {
+                IsLoadingPermissions = false;
+            }
+        }
+
+        public ExplorerUCViewModel()
+        {            
             SelectedPath = AppSettingsManager.Settings.StartShare;
             UpdateLocalizedHeaders();
 
             OpenFolderDialogCommand = new RelayCommand(OpenFolderDialog);
 
             Task.Run(() => LoadRootDirectoriesAsync());
-            sw1.Stop();
-            Debug.WriteLine($"MainWindowViewModel S1 Konstruktor dauerte: {sw1.ElapsedMilliseconds} ms");
 
             ResourceService.Instance.PropertyChanged += (_, __) => UpdateLocalizedHeaders();
 
             Debug.WriteLine($"ExplorerUCViewModel {SelectedPath}");
-            EditPermissionCommand = new RelayCommand<PermissionInfo>(EditPermission, CanEditPermission);
-            RemovePermissionCommand = new RelayCommand<PermissionInfo>(RemovePermission, CanRemovePermission);
-
-            sw2.Stop();
-            Debug.WriteLine($"MainWindowViewModel S2 Konstruktor dauerte: {sw2.ElapsedMilliseconds} ms");
+            AddMemberCommand = new RelayCommand(AddSelectedMember, CanAddMember);
+            RemoveUserCommand = new RelayCommand(_ => RemoveUser(), _ => SelectedPermission != null);
         }
-        private bool CanEditPermission(PermissionInfo? info) => info != null && info.Rights.HasFlag(FileSystemRights.Modify);
-        private void EditPermission(PermissionInfo? info)
+
+        /// <summary>
+        /// Opens a folder browser dialog and sets the selected path.
+        /// Also triggers loading of root directories.
+        /// </summary>
+        private void OpenFolderDialog(object? obj)
         {
-            if (info == null)
+            var dialog = new VistaFolderBrowserDialog
             {
-                return;
-            }
-            // TODO: Use NtfsPermissionHelper.RemovePermission(...)
-            if (SelectedFolderPath == null)
-            {
-                return;
-            }
-            NtfsPermissionHelper.SetPermission(
-                folderPath: SelectedFolderPath,
-                identity: info.IdentityReference,
-                rights: FileSystemRights.Modify, // oder ReadAndExecute etc.
-                controlType: AccessControlType.Allow
-            );
-        }
+                Description = Resources.txtPlaseSelectNetworkDirectory,
+                UseDescriptionForTitle = true,
+                ShowNewFolderButton = false,
+                SelectedPath = SelectedPath
+            };
+            Debug.WriteLine($"Selected path: {dialog.SelectedPath}");
+            bool? result = dialog.ShowDialog();
 
-        private bool CanRemovePermission(PermissionInfo? info) => info != null && info.Rights.HasFlag(FileSystemRights.Modify);
-        private void RemovePermission(PermissionInfo? info)
+            if (result == true)
+            {
+                SelectedPath = dialog.SelectedPath;
+                AppSettingsManager.Settings.StartShare = SelectedPath;
+                Debug.WriteLine($"Selected path: {SelectedPath}");
+                AppSettingsManager.Save(); // Save the selected path to settings
+                // Clearing RootItems for new loading
+                RootItems.Clear();
+
+                Task.Run(() => LoadRootDirectoriesAsync());
+
+            }
+        }
+        /// <summary>
+        /// Loads NTFS permissions for the currently selected directory node.
+        /// Uses debouncing to avoid excessive calls.
+        /// </summary>
+        private async Task LoadPermissionsForSelectedNodeAsync()
         {
-            if (info == null)
+            _cts?.Cancel();
+            _cts = new CancellationTokenSource();
+            var token = _cts.Token;
+
+            try
+            {
+                await Task.Delay(150, token); // debounce
+                if (SelectedNode != null && Directory.Exists(SelectedNode.FullPath))
+                {
+                    await LoadPermissionsAsync(SelectedNode.FullPath);
+                }
+            }
+            catch (TaskCanceledException)
+            {
+                // Ignored
+            }
+        }
+
+        private void RemoveUser()
+        {
+            if (SelectedPermission == null || string.IsNullOrWhiteSpace(SelectedFolderPath))
             {
                 return;
             }
 
-
-            CurrentPermissions.Remove(info);
+            NtfsPermissionHelper.RemovePermission(SelectedFolderPath, SelectedPermission.IdentityReference);
+            CurrentPermissions.Remove(SelectedPermission);
         }
 
-        private async Task LoadRootDirectoriesAsync()
+
+        private PermissionInfo _selectedPermission;        
+
+        public PermissionInfo SelectedPermission
+        {
+            get => _selectedPermission;
+            set
+            {
+                _selectedPermission = value;
+                OnPropertyChanged();
+
+                RemoveUserCommand?.RaiseCanExecuteChanged();
+            }
+        }
+
+        /// <summary>
+        /// Loads the root directory node and adds it to the UI tree.
+        /// </summary>
+        private async Task LoadRootDirectoriesAsync()        
         {
             string rootPath = SelectedPath;
             if (string.IsNullOrWhiteSpace(rootPath) || !Directory.Exists(rootPath))
@@ -273,29 +321,144 @@ namespace GM4ManagerWPF.ViewModels
 
             App.Current.Dispatcher.Invoke(() =>
             {
+                RootItems.Clear(); // <<< important, so only one root node is present
                 RootItems.Add(rootNode);
             });
-        }
-        private bool _isLoadingPermissions;
-        public bool IsLoadingPermissions
-        {
-            get => _isLoadingPermissions;
-            set
-            {
-                _isLoadingPermissions = value;
-                OnPropertyChanged();
-            }
-        }
+        }        
 
+        /// <summary>
+        /// Updates the column headers based on the current localization.
+        /// </summary>
         private void UpdateLocalizedHeaders()
         {
             HeaderMember = ResourceService.Instance["colMember"];
             HeaderModify = ResourceService.Instance["colModify"];
             HeaderReadAndExecute = ResourceService.Instance["colReadAndExecute"];
         }
+        /// <summary>
+        /// Creates a new folder in the selected path.
+        /// Optionally disables inheritance of NTFS permissions.
+        /// </summary>
+        private void CreateNewFolder()
+        {
+            try
+            {
+                if (SelectedNode == null)
+                {
+                    MessageBox.Show(Resources.msgNoFolderSelected, Resources.msgHeaderError, MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
 
-        public event PropertyChangedEventHandler? PropertyChanged;
+                string fullPath = SelectedNode.FullPath;
+                string parentPath = fullPath;
+                string newPath = Path.Combine(parentPath, NewFolderName);
+                Debug.WriteLine($"Creating new folder at: {newPath}");
+
+                if (Directory.Exists(newPath))
+                {
+                    MessageBox.Show(Resources.msgFolderAlreadyExists, Resources.msgHeaderWarning, MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
+                Directory.CreateDirectory(newPath);
+
+                if (DisableInheritance)
+                {
+                    var dirInfo = new DirectoryInfo(newPath);
+                    var security = dirInfo.GetAccessControl();
+
+                    // Remove inheritance and copy rules
+                    security.SetAccessRuleProtection(true, true); // disable inheritance, copy existing rules
+
+                    dirInfo.SetAccessControl(security);
+                }
+                var message = Resources.msgFolderCreatedSuccessfully.Replace("{folder}", newPath);
+                MessageBox.Show(message, "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+                // Refresh the selected node to reflect the new folder
+                Debug.WriteLine($"Refreshing node: {SelectedNode.FullPath}");
+
+
+                var parentNode = SelectedNode;
+                parentNode.Refresh();
+
+
+                NewFolderName = string.Empty;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($" {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+
+        /// <summary>
+        /// Opens a separate Window to search for and add a member to the selected group.
+        /// </summary>
+        /// <param name="parameter"></param>
+        private void AddSelectedMember(object? parameter)
+        {
+            if (SelectedNode == null)
+            {
+                MessageBox.Show(Resources.msgSelectFolderFirst, Resources.msgHeaderError, MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            // Open the Active Directory user search window
+            var adSearchWindow = new AdUserSearchWindow();
+            bool? result = adSearchWindow.ShowDialog();
+
+            if (result == true && !string.IsNullOrWhiteSpace(adSearchWindow.SelectedUserDn))
+            {
+                string samAccountName = adSearchWindow.SamAccountName ?? string.Empty;
+
+                if (CurrentPermissions.Count == 0)
+                {
+                    CurrentPermissions = [];
+                }
+                // Check if the user is already in the group
+                bool alreadyInGroup = CurrentPermissions.Any(m => m?.IdentityReference.Equals(samAccountName, StringComparison.OrdinalIgnoreCase) == true);
+                Debug.WriteLine($"Adding user: {samAccountName} to group: {SelectedNode.FullPath}, already in group: {alreadyInGroup}");
+                if (!alreadyInGroup)
+                {
+                    try
+                    {
+                        //var rights = FileSystemRights.ChangePermissions | FileSystemRights.Modify | FileSystemRights.ReadAndExecute | FileSystemRights.FullControl;
+                        var rights =  FileSystemRights.Modify | FileSystemRights.ReadAndExecute;
+
+                        NtfsPermissionHelper.AddPermission(SelectedNode.FullPath, samAccountName, rights, AccessControlType.Allow);
+                    }
+                    catch (Exception ex)
+                    {
+                        string message = Resources.msgErrorAddingUser.Replace("{message}", ex.Message);
+                        MessageBox.Show(message, Resources.msgHeaderError, MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                }
+                else
+                {
+                    MessageBox.Show(Resources.msgErrorUserAlreadyInGroup, Resources.msgHeaderSuccess, MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+        }
+
+
+        private bool CanAddMember(object? parameter)
+        {
+            return SelectedNode != null;
+        }
+
         protected void OnPropertyChanged([CallerMemberName] string? name = null) =>
               PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+
+
+        protected bool SetProperty<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
+        {
+            if (!EqualityComparer<T>.Default.Equals(field, value))
+            {
+                field = value!;
+                OnPropertyChanged(propertyName);
+                return true;
+            }
+            return false;
+        }
     }
-}
+} // End of namespace

@@ -1,6 +1,5 @@
 ﻿using GM4ManagerWPF.Classes;
 using GM4ManagerWPF.Helpers;
-using GM4ManagerWPF.ViewModels;
 using System.Diagnostics;
 using System.Windows;
 
