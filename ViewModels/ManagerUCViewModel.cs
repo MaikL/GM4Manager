@@ -246,10 +246,10 @@ namespace GM4ManagerWPF.ViewModels
 
             // Optionally auto-select the first group
             if (LvGroupsCollection.Count > 0)
+            {
                 SelectedGroup = LvGroupsCollection[0];
+            }
         }
-
-
 
         public event PropertyChangedEventHandler? PropertyChanged;
         protected void OnPropertyChanged([CallerMemberName] string? name = null) =>

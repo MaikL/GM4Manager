@@ -288,11 +288,11 @@ namespace GM4ManagerWPF.ViewModels
         }
 
 
-        private PermissionInfo _selectedPermission;        
+        private PermissionInfo? _selectedPermission;        
 
         public PermissionInfo SelectedPermission
         {
-            get => _selectedPermission;
+            get => _selectedPermission = new PermissionInfo();
             set
             {
                 _selectedPermission = value;

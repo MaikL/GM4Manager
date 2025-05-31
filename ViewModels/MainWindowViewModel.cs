@@ -11,7 +11,7 @@ namespace GM4ManagerWPF.ViewModels
         public static ResourceService Res => ResourceService.Instance;
         public event PropertyChangedEventHandler? PropertyChanged;
 
-        private ManagerUCViewModel _manager;
+        private ManagerUCViewModel _manager = null!;
         public ManagerUCViewModel Manager
         {
             get => _manager;
@@ -48,10 +48,10 @@ namespace GM4ManagerWPF.ViewModels
             }
         }
 
-        private string _managerName = string.Empty;
+        private string? _managerName = string.Empty;
         public string ManagerName
         {
-            get => _managerName;
+            get => _managerName = string.Empty;
             set
             {
                 _managerName = value;
@@ -62,7 +62,7 @@ namespace GM4ManagerWPF.ViewModels
         public MainWindowViewModel()
         {
             // Always load Manager tab and name at startup
-            ManagerName = "👤 " + Resources.headerManager.Replace("{manager}", ActiveDirectoryService.GetCNFromUsername());
+            _managerName = "👤 " + Resources.headerManager.Replace("{manager}", ActiveDirectoryService.GetCNFromUsername());
 
             Manager = new ManagerUCViewModel();
             SelectedTabIndex = 0; // Manager tab by default
@@ -74,7 +74,9 @@ namespace GM4ManagerWPF.ViewModels
 
             // Only preload Explorer if Explorer tab is selected on startup (not required)
             if (SelectedTabIndex == 0)
+            {
                 await LoadExplorerAsync(reportStatus);
+            }
         }
 
         private async Task OnTabChangedAsync(int index)

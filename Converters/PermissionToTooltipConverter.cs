@@ -16,11 +16,20 @@ namespace GM4ManagerWPF.Converters
             if (value is PermissionInfo permission)
             {
                 if (permission.Rights.HasFlag(FileSystemRights.FullControl))
+                {
                     return Res["ttReadWrite"];
+                }
+
                 if (permission.CanModify)
+                {
                     return Res["ttReadWrite"];
+                }
+
                 if (permission.CanReadExecute)
+                {
                     return Res["ttReadOnly"];
+                }
+
                 return "None";
             }
 
