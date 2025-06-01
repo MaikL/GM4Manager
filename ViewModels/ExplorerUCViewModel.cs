@@ -19,13 +19,12 @@ using System.Windows.Input;
 namespace GM4ManagerWPF.ViewModels
 {
     public class ExplorerUCViewModel : INotifyPropertyChanged
-    {        
+    {
         public string SelectedPath
         {
             get => _selectedPath;
             set { _selectedPath = value; OnPropertyChanged(); }
         }
-
 
         public ObservableCollection<PermissionInfo> CurrentPermissions
         {
@@ -37,6 +36,7 @@ namespace GM4ManagerWPF.ViewModels
             }
         }
         public ICommand AddMemberCommand { get; }
+        public ICommand RemoveMemberCommand { get; }
         public string NewFolderName
         {
             get => _newFolderName;
@@ -65,10 +65,12 @@ namespace GM4ManagerWPF.ViewModels
                 {
                     _selectedNode = value;
                     OnPropertyChanged();
-                    _ = LoadPermissionsForSelectedNodeAsync(); // fire & forget                    
+                    _ = LoadPermissionsForSelectedNodeAsync(); // fire & forget
+                    ((RelayCommand)AddMemberCommand).RaiseCanExecuteChanged();
+                    ((RelayCommand)RemoveMemberCommand).RaiseCanExecuteChanged();
                 }
             }
-        }        
+        }
 
         private CancellationTokenSource? _cts;
 
@@ -132,8 +134,8 @@ namespace GM4ManagerWPF.ViewModels
         public ICommand CreateNewFolderCommand => new RelayCommand(CreateNewFolder, () => CanCreateFolder);
 
         public ICommand OpenFolderDialogCommand { get; }
-        
-        public RelayCommand RemoveUserCommand { get; }
+
+
 
         /// <summary>
         /// Initializes the ViewModel by loading the current user's group memberships.
@@ -164,7 +166,9 @@ namespace GM4ManagerWPF.ViewModels
                 var result = await Task.Run(() =>
                 {
                     var dirInfo = new DirectoryInfo(folderPath);
-                    var acl = dirInfo.GetAccessControl();
+                    DirectorySecurity acl = dirInfo.GetAccessControl();
+                    bool isProtected = acl.AreAccessRulesProtected;
+                    IsInheritedFromParent = !isProtected; // true if inherited
                     var accessRules = acl.GetAccessRules(true, true, typeof(NTAccount));
 
                     var list = new List<PermissionInfo>();
@@ -208,7 +212,7 @@ namespace GM4ManagerWPF.ViewModels
         }
 
         public ExplorerUCViewModel()
-        {            
+        {
             SelectedPath = AppSettingsManager.Settings.StartShare;
             UpdateLocalizedHeaders();
 
@@ -220,7 +224,8 @@ namespace GM4ManagerWPF.ViewModels
 
             Debug.WriteLine($"ExplorerUCViewModel {SelectedPath}");
             AddMemberCommand = new RelayCommand(AddSelectedMember, CanAddMember);
-            RemoveUserCommand = new RelayCommand(_ => RemoveUser(), _ => SelectedPermission != null);
+            RemoveMemberCommand = new RelayCommand(RemoveSelectedMember, CanRemoveMember);
+            DisableInheritance = true;
         }
 
         /// <summary>
@@ -231,7 +236,7 @@ namespace GM4ManagerWPF.ViewModels
         {
             var dialog = new VistaFolderBrowserDialog
             {
-                Description = Resources.txtPlaseSelectNetworkDirectory,
+                Description = Resources.txtPleaseSelectNetworkDirectory,
                 UseDescriptionForTitle = true,
                 ShowNewFolderButton = false,
                 SelectedPath = SelectedPath
@@ -276,7 +281,7 @@ namespace GM4ManagerWPF.ViewModels
             }
         }
 
-        private void RemoveUser()
+        private void RemoveSelectedMember(object? parameter)
         {
             if (SelectedPermission == null || string.IsNullOrWhiteSpace(SelectedFolderPath))
             {
@@ -288,24 +293,25 @@ namespace GM4ManagerWPF.ViewModels
         }
 
 
-        private PermissionInfo? _selectedPermission;        
+        private PermissionInfo? _selectedPermission;
 
-        public PermissionInfo SelectedPermission
+        public PermissionInfo? SelectedPermission
         {
-            get => _selectedPermission = new PermissionInfo();
+            get => _selectedPermission;
             set
             {
                 _selectedPermission = value;
                 OnPropertyChanged();
-
-                RemoveUserCommand?.RaiseCanExecuteChanged();
+                Debug.WriteLine($"SelectedPermission changed: {_selectedPermission?.IdentityReference}");
+                ((RelayCommand)AddMemberCommand).RaiseCanExecuteChanged();
+                ((RelayCommand)RemoveMemberCommand).RaiseCanExecuteChanged();
             }
         }
 
         /// <summary>
         /// Loads the root directory node and adds it to the UI tree.
         /// </summary>
-        private async Task LoadRootDirectoriesAsync()        
+        private async Task LoadRootDirectoriesAsync()
         {
             string rootPath = SelectedPath;
             if (string.IsNullOrWhiteSpace(rootPath) || !Directory.Exists(rootPath))
@@ -324,7 +330,7 @@ namespace GM4ManagerWPF.ViewModels
                 RootItems.Clear(); // <<< important, so only one root node is present
                 RootItems.Add(rootNode);
             });
-        }        
+        }
 
         /// <summary>
         /// Updates the column headers based on the current localization.
@@ -381,7 +387,6 @@ namespace GM4ManagerWPF.ViewModels
                 var parentNode = SelectedNode;
                 parentNode.Refresh();
 
-
                 NewFolderName = string.Empty;
             }
             catch (Exception ex)
@@ -423,9 +428,17 @@ namespace GM4ManagerWPF.ViewModels
                     try
                     {
                         //var rights = FileSystemRights.ChangePermissions | FileSystemRights.Modify | FileSystemRights.ReadAndExecute | FileSystemRights.FullControl;
-                        var rights =  FileSystemRights.Modify | FileSystemRights.ReadAndExecute;
+                        var rights = FileSystemRights.Modify | FileSystemRights.ReadAndExecute;
 
                         NtfsPermissionHelper.AddPermission(SelectedNode.FullPath, samAccountName, rights, AccessControlType.Allow);
+                        var newPermission = new PermissionInfo
+                        {
+                            IdentityReference = samAccountName,
+                            CanModify = rights.HasFlag(FileSystemRights.Modify),
+                            CanReadExecute = rights.HasFlag(FileSystemRights.ReadAndExecute),
+                            Rights = rights
+                        };
+                        CurrentPermissions.Add(newPermission);
                     }
                     catch (Exception ex)
                     {
@@ -443,8 +456,28 @@ namespace GM4ManagerWPF.ViewModels
 
         private bool CanAddMember(object? parameter)
         {
+            Debug.WriteLine($"CanAddMember: SelectedNode: {SelectedNode?.FullPath}");
             return SelectedNode != null;
         }
+
+        private bool CanRemoveMember(object? parameter)
+        {
+            Debug.WriteLine($"CanRemoveMember: SelectedNode: {SelectedNode?.FullPath}");
+            return SelectedNode != null && SelectedPermission != null;
+        }
+
+        private bool _isInheritedFromParent;
+
+        public bool IsInheritedFromParent
+        {
+            get => _isInheritedFromParent;
+            set
+            {
+                _isInheritedFromParent = value;
+                OnPropertyChanged();
+            }
+        }
+
 
         protected void OnPropertyChanged([CallerMemberName] string? name = null) =>
               PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));

@@ -301,7 +301,9 @@ namespace GM4ManagerWPF.Classes
                 Debug.WriteLine("Error: " + ex.Message);
             }
 
-            _cachedManagedGroups = new ObservableCollection<LvGroupsClass>(LvGroupsCollection);
+            var sorted = LvGroupsCollection.OrderBy(g => g.Cn).ToList();
+            LvGroupsCollection = new ObservableCollection<LvGroupsClass>(sorted);
+            _cachedManagedGroups = LvGroupsCollection;
 
             return LvGroupsCollection;
         }

@@ -25,3 +25,5 @@ Name: "desktopicon"; Description: "Create a &desktop icon"; GroupDescription: "A
 
 [Run]
 Filename: "{app}\GM4Manager.exe"; Description: "Launch GM4Manager"; Flags: nowait postinstall skipifsilent
+[UninstallDelete]
+Type: filesandordirs; Name: "{app}"

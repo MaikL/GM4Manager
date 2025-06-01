@@ -8,7 +8,5 @@ namespace GM4ManagerWPF.Models
         public bool CanModify { get; set; }
         public bool CanReadExecute { get; set; }
         public FileSystemRights Rights { get; set; }
-
-        //public event PropertyChangedEventHandler? PropertyChanged;
     }
 }

@@ -10,7 +10,7 @@
         Title="GM4Manager - Group Manager for Manager" Height="800" Width="1200"
         Icon="pack://application:,,,/Ressources/GM4ManagerIcon.ico"
         xmlns:ui="http://schemas.modernwpf.com/2019" 
-        xmlns:viewmodels="clr-namespace:GM4ManagerWPF.ViewModels"
+        xmlns:viewmodels="clr-namespace:GM4ManagerWPF.ViewModels"    
         ui:ThemeManager.IsThemeAware="True"
         ui:WindowHelper.UseModernWindowStyle="True"
         xmlns:views="clr-namespace:GM4ManagerWPF.Views">
@@ -34,7 +34,6 @@
                 <MenuItem Header="{Binding Res[menuLight]}" Click="SetThemeLight"/>
             </MenuItem>
             <MenuItem Header="{Binding ManagerName}" HorizontalAlignment="Right" FlowDirection="RightToLeft">
-                
             </MenuItem>
         </Menu>
         <TabControl x:Name="MainTabControl"

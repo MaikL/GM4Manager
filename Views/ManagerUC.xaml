@@ -11,6 +11,11 @@
 			d:DesignHeight="700" d:DesignWidth="900">
     <UserControl.Resources>
         <conv:ObjectClassToIconConverter x:Key="ObjectClassToIconConverter"/>
+        <Style TargetType="GridViewColumnHeader">
+        <Setter Property="Height" Value="40"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+        <Setter Property="HorizontalContentAlignment" Value="Center"/>
+    </Style>
     </UserControl.Resources>
     <Grid>
         <Grid.ColumnDefinitions>           
@@ -37,7 +42,9 @@
         </ListView>
 
         <StackPanel Grid.Column="2" Grid.Row="0" Grid.ColumnSpan="2">
-            <Label Content="{Binding Res[headerMembers]}" HorizontalAlignment="Center" VerticalAlignment="Center" Height="30" Padding="0,5,0,5" />
+            <Label Content="{Binding Res[headerMembers]}" HorizontalAlignment="Center"
+                   Height="40" VerticalAlignment="Center" Padding="0,5,0,5"
+                   FontWeight="Bold" />
             <ListBox ItemsSource="{Binding GroupMembers}" SelectedItem="{Binding SelectedMember, Mode=TwoWay}" >
                 <ListBox.ItemTemplate>
                     <DataTemplate>
@@ -48,8 +55,8 @@
                     </DataTemplate>
                 </ListBox.ItemTemplate>
             </ListBox>
-
         </StackPanel>
+        
         <Button x:Name="BtnAddMember" Grid.Column="2" Content="{Binding Res[btnAddMember]}" 
                 Style="{DynamicResource AccentButtonStyle}"
     			HorizontalAlignment="Left" Grid.Row="1" VerticalAlignment="Top" Margin="0,5,0,0"

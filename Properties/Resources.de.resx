@@ -337,7 +337,7 @@
   <data name="txtPathNotFound" xml:space="preserve">
     <value>Pfad nicht gefunden</value>
   </data>
-  <data name="txtPlaseSelectNetworkDirectory" xml:space="preserve">
+  <data name="txtPleaseSelectNetworkDirectory" xml:space="preserve">
     <value>Netzlaufwerk auswählen...</value>
   </data>
   <data name="txtProgramName" xml:space="preserve">

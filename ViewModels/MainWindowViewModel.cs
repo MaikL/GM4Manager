@@ -2,6 +2,7 @@
 using GM4ManagerWPF.Localization;
 using GM4ManagerWPF.Properties;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
 namespace GM4ManagerWPF.ViewModels
@@ -51,7 +52,7 @@ namespace GM4ManagerWPF.ViewModels
         private string? _managerName = string.Empty;
         public string ManagerName
         {
-            get => _managerName = string.Empty;
+            get => _managerName ?? string.Empty;
             set
             {
                 _managerName = value;
@@ -60,18 +61,16 @@ namespace GM4ManagerWPF.ViewModels
         }
 
         public MainWindowViewModel()
-        {
-            // Always load Manager tab and name at startup
-            _managerName = "👤 " + Resources.headerManager.Replace("{manager}", ActiveDirectoryService.GetCNFromUsername());
-
+        {            
             Manager = new ManagerUCViewModel();
+            _managerName = "👤 " + Resources.headerManager.Replace("{manager}", ActiveDirectoryService.GetCNFromUsername());
             SelectedTabIndex = 0; // Manager tab by default
         }
 
         public async Task InitializeAsync(Action<string>? reportStatus = null)
         {
             await Manager.InitializeAsync(reportStatus);
-
+            
             // Only preload Explorer if Explorer tab is selected on startup (not required)
             if (SelectedTabIndex == 0)
             {

@@ -783,9 +783,9 @@ namespace GM4ManagerWPF.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Select a network directory....
         /// </summary>
-        internal static string txtPlaseSelectNetworkDirectory {
+        internal static string txtPleaseSelectNetworkDirectory {
             get {
-                return ResourceManager.GetString("txtPlaseSelectNetworkDirectory", resourceCulture);
+                return ResourceManager.GetString("txtPleaseSelectNetworkDirectory", resourceCulture);
             }
         }
         

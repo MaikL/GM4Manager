@@ -9,7 +9,7 @@
         public string ObjectClass { get; set; } = ""; // z. B. "user" oder "group"
         public override string ToString()
         {
-            return $"{DisplayName} ({CommonName})";
+            return $"{DisplayName} ({SamAccountName})";
         }
     }
 }

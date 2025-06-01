@@ -12,6 +12,7 @@
     <UserControl.Resources>
         <conv:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
         <conv:PermissionToTooltipConverter x:Key="PermissionTooltipConverter" />
+        <conv:InvertBoolConverter x:Key="InvertBoolConverter"/>
     </UserControl.Resources>
     <Grid>
         <Grid.ColumnDefinitions>
@@ -29,7 +30,7 @@
         <StackPanel Grid.Column="0" Grid.ColumnSpan="4" Orientation="Horizontal">
             <TextBox Height="40" Text="{Binding SelectedPath, UpdateSourceTrigger=PropertyChanged}" 
                 IsReadOnly="True" Margin="10,5,0,10" Width="400" IsReadOnlyCaretVisible="True" />
-            <Button Height="40" Margin="10,5,0,10" Content="{Binding Res[txtPlaseSelectNetworkDirectory]}"
+            <Button Height="40" Margin="10,5,0,10" Style="{DynamicResource AccentButtonStyle}" Content="{Binding Res[txtPleaseSelectNetworkDirectory]}"
                 Command="{Binding OpenFolderDialogCommand}" />
         </StackPanel>
         <StackPanel Orientation="Horizontal" Grid.Row="1" Grid.ColumnSpan="4" Margin="10,5,0,5">
@@ -40,16 +41,12 @@
                    FontWeight="Bold"                   
                    Visibility="{Binding IsLoadingPermissions, Converter={StaticResource BoolToVisibilityConverter}}" />
         </StackPanel>
-
         <Label Grid.Row="1" Grid.Column="2" Grid.ColumnSpan="2" Content="{Binding Res[headerDirectoryPermissions]}" HorizontalAlignment="Left" VerticalAlignment="Center" Height="30" Padding="10,5,0,5" FontWeight="Bold"  />
-        <Border Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,0,10,0" BorderThickness="1" BorderBrush="{DynamicResource SystemAccentColorLight1Brush}">
-            <TreeView x:Name="DirectoryTree"
-          Grid.Row="2"
-          Grid.ColumnSpan="2"
-          Grid.Column="0"
-          ItemsSource="{Binding RootItems}"
-          SelectedItemChanged="DirectoryTree_SelectedItemChanged"
-          FontSize="14">
+        <Border Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,0,10,0" BorderThickness="1" BorderBrush="{DynamicResource ListAccentLow}">
+            <TreeView x:Name="DirectoryTree" Grid.Row="2" Grid.ColumnSpan="2" Grid.Column="0"
+                  ItemsSource="{Binding RootItems}"
+                  SelectedItemChanged="DirectoryTree_SelectedItemChanged"
+                  FontSize="14">
                 <TreeView.ItemTemplate>
                     <HierarchicalDataTemplate ItemsSource="{Binding Children}">
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
@@ -66,9 +63,25 @@
                                 </Image.Style>
                             </Image>
                             <TextBlock Text="{Binding Name}"
-                           VerticalAlignment="Center"
-                           Margin="5,0,0,0"
-                           Foreground="{DynamicResource ListLowBrush}" />
+                               VerticalAlignment="Center"
+                               Margin="10,3,3,3"
+                               Padding="5,0,0,0"
+                             >
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="FontWeight" Value="Normal" />
+                                        <Setter Property="Foreground" Value="{DynamicResource SystemControlForegroundBaseHighBrush}" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                                <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundAccentBrush}" />
+                                                <Setter Property="Margin" Value="15,5,5,5" />
+                                                <Setter Property="FontWeight" Value="Bold" />
+                                                <Setter Property="Foreground" Value="{DynamicResource SystemControlForegroundBaseMediumHighBrush}" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
                         </StackPanel>
                     </HierarchicalDataTemplate>
                 </TreeView.ItemTemplate>
@@ -79,60 +92,79 @@
                 </TreeView.ItemContainerStyle>
             </TreeView>
         </Border>
-        <DataGrid Grid.Row="2" Grid.Column="2" Grid.ColumnSpan="2"
+
+        <Grid Grid.Row="2" Grid.Column="2" Grid.ColumnSpan="2">
+            <DataGrid 
           ItemsSource="{Binding CurrentPermissions}" 
           x:Name="PermissionsGrid"
           AutoGenerateColumns="False"
           CanUserAddRows="False"
           SelectedItem="{Binding SelectedPermission, Mode=TwoWay}"   
-          IsReadOnly="True">
-            <DataGrid.Columns>
-                <DataGridTextColumn Header="Group" Binding="{Binding IdentityReference}" />
-                <DataGridTemplateColumn Header="Permissions">
-                    <DataGridTemplateColumn.CellTemplate>
-                        <DataTemplate>
+          IsReadOnly="True"
+          >
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Group" Binding="{Binding IdentityReference}" />
+                    <DataGridTemplateColumn Header="Permissions">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
                                 <Image Width="32" Height="32">
-                                <Image.Style>
-                                    <Style TargetType="Image">
-                                        <Setter Property="Source" Value="/Ressources/Icons/readonly.png" />
-                                        <Setter Property="ToolTip">
-                                            <Setter.Value>
-                                                <ToolTip Content="{Binding ., Converter={StaticResource PermissionTooltipConverter}}" />
-                                            </Setter.Value>
-                                        </Setter>
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding CanModify}" Value="True">
-                                                <Setter Property="Source" Value="/Ressources/Icons/edit.png" />
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </Image.Style>
-                            </Image>
-                        </DataTemplate>
-                    </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
-            </DataGrid.Columns>
-        </DataGrid>
+                                    <Image.Style>
+                                        <Style TargetType="Image">
+                                            <Setter Property="Source" Value="/Ressources/Icons/readonly.png" />
+                                            <Setter Property="ToolTip">
+                                                <Setter.Value>
+                                                    <ToolTip Content="{Binding ., Converter={StaticResource PermissionTooltipConverter}}" />
+                                                </Setter.Value>
+                                            </Setter>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding CanModify}" Value="True">
+                                                    <Setter Property="Source" Value="/Ressources/Icons/edit.png" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Image.Style>
+                                </Image>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                </DataGrid.Columns>
+            </DataGrid>
+            <Border Background="White" Opacity="0.8"
+                    Visibility="{Binding IsInheritedFromParent, Converter={StaticResource BoolToVisibilityConverter}}"
+                    Panel.ZIndex="1">
+                <TextBlock Text="{Binding Res[tooltipInheritanceEnabled]}"
+                           FontStyle="Italic"
+                           Foreground="Gray"
+                           FontSize="16"
+                           TextAlignment="Center"
+                           VerticalAlignment="Center"
+                           HorizontalAlignment="Center"
+                           Padding="20"></TextBlock>
+             </Border>
+        </Grid>
+
         <StackPanel Grid.Row="3" Grid.Column="2" Grid.ColumnSpan="2" Orientation="Horizontal" Margin="10,5,0,0">
             <Button Content="{Binding Res[btnAddMember]}" 
               Command="{Binding AddMemberCommand}" 
               Style="{DynamicResource AccentButtonStyle}"
               Margin="0,0,10,0" />
             <Button Content="{Binding Res[btnRemoveMember]}" 
-              Command="{Binding RemoveUserCommand}" 
+              Command="{Binding RemoveMemberCommand}" 
               Style="{DynamicResource AccentButtonStyle}" />
         </StackPanel>
 
         <StackPanel Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2"
             Margin="10" Orientation="Vertical" VerticalAlignment="Center">
-            <Label Content="{Binding Res[headerCreateFolder]}" HorizontalAlignment="Left" VerticalAlignment="Center" Height="30" Padding="10,5,0,5" FontWeight="Bold" />
+            <Label Content="{Binding Res[headerCreateFolder]}" HorizontalAlignment="Left"
+                   VerticalAlignment="Center" Height="30" Padding="10,5,0,5"
+                   FontWeight="Bold" />
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                 <TextBox Width="200"
                  Margin="0,0,10,0"
                  VerticalAlignment="Center"
                  Text="{Binding NewFolderName, UpdateSourceTrigger=PropertyChanged}" />
-                <CheckBox Content="{Binding Res[txtDisableInheritance]}"                  
-                  VerticalAlignment="Center" IsChecked="True" />
+                <CheckBox Content="{Binding Res[txtDisableInheritance]}" 
+                  VerticalAlignment="Center" IsChecked="{Binding DisableInheritance}" />
             </StackPanel>
             <Button Content="{Binding Res[btnCreateFolder]}"
             Margin="0,10,0,0"

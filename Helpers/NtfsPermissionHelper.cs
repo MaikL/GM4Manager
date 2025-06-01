@@ -89,7 +89,11 @@ namespace GM4ManagerWPF.Helpers
             dirSecurity.AddAccessRule(rule);
             dirInfo.SetAccessControl(dirSecurity);
         }
-
+        /// <summary>
+        /// Removes NTFS permissions for a specific identity and rights from a folder.
+        /// </summary>
+        /// <param name="folderPath">The full path to the folder.</param>
+        /// <param name="identity">The NTAccount identity (e.g., DOMAIN\User).</param>
         public static void RemovePermission(string folderPath, string identity)
         {
             var dirInfo = new DirectoryInfo(folderPath);
@@ -102,37 +106,7 @@ namespace GM4ManagerWPF.Helpers
 
             dirInfo.SetAccessControl(dirSecurity);
         }
-
-
-        /// <summary>
-        /// Removes NTFS permissions for a specific identity and rights from a folder.
-        /// </summary>
-        /// <param name="folderPath">The full path to the folder.</param>
-        /// <param name="identity">The NTAccount identity (e.g., DOMAIN\User).</param>
-        /// <param name="rights">The specific rights to remove (e.g., Modify).</param>
-        public static void RemovePermission(string folderPath, string identity, FileSystemRights rights)
-        {
-            var dirInfo = new DirectoryInfo(folderPath);
-            var dirSecurity = dirInfo.GetAccessControl();
-
-            var rules = dirSecurity.GetAccessRules(true, true, typeof(NTAccount));
-
-            foreach (FileSystemAccessRule rule in rules)
-            {
-                if (rule.IdentityReference.Value.Equals(identity, StringComparison.OrdinalIgnoreCase) &&
-                    rule.AccessControlType == AccessControlType.Allow &&
-                    rule.FileSystemRights.HasFlag(rights))
-                {
-                    dirSecurity.RemoveAccessRuleSpecific(rule);
-                }
-                else
-                {
-                    Debug.WriteLine($"No matching rule found for identity: {identity} with rights: {rights}. HAS: {rule.FileSystemRights.ToString()}");
-                }
-            }
-
-            dirInfo.SetAccessControl(dirSecurity);
-        }
+        
         public static bool CurrentUserCanEditPermissions(string folderPath)
         {
             try
