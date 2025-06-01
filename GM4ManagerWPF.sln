@@ -5,7 +5,10 @@ VisualStudioVersion = 17.13.35931.197
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GM4ManagerWPF", "GM4ManagerWPF.csproj", "{BA54A127-67F2-4365-96E7-39EB96445257}"
 EndProject
-Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "GM4Manager.Setup", "..\GM4Manager.Setup\GM4Manager.Setup.vdproj", "{3DCE5F3E-6BC2-4007-3B3A-922A1369A4F3}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8EC462FD-D22E-90A8-E5CE-7E832BA40C5D}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -23,11 +26,6 @@ Global
 		{BA54A127-67F2-4365-96E7-39EB96445257}.Release|Any CPU.Build.0 = Release|Any CPU
 		{BA54A127-67F2-4365-96E7-39EB96445257}.Release|x86.ActiveCfg = Release|Any CPU
 		{BA54A127-67F2-4365-96E7-39EB96445257}.Release|x86.Build.0 = Release|Any CPU
-		{3DCE5F3E-6BC2-4007-3B3A-922A1369A4F3}.Debug|Any CPU.ActiveCfg = Debug
-		{3DCE5F3E-6BC2-4007-3B3A-922A1369A4F3}.Debug|x86.ActiveCfg = Debug
-		{3DCE5F3E-6BC2-4007-3B3A-922A1369A4F3}.Release|Any CPU.ActiveCfg = Release
-		{3DCE5F3E-6BC2-4007-3B3A-922A1369A4F3}.Release|Any CPU.Build.0 = Release
-		{3DCE5F3E-6BC2-4007-3B3A-922A1369A4F3}.Release|x86.ActiveCfg = Release
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

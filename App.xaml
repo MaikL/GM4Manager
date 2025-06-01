@@ -4,17 +4,15 @@
             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
             xmlns:ui="http://schemas.modernwpf.com/2019"
             xmlns:local="clr-namespace:GM4ManagerWPF.Localization"
-            xmlns:sys="clr-namespace:System;assembly=mscorlib"
-    >
+            xmlns:conv="clr-namespace:GM4ManagerWPF.Converters"
+            xmlns:sys="clr-namespace:System;assembly=mscorlib" xmlns:local1="clr-namespace:GM4ManagerWPF.Converters">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <!-- Removed FluentWPF Controls and theme resources due to missing assembly -->
                 <ui:ThemeResources>
                     <ui:ThemeResources.ThemeDictionaries>
                         <ResourceDictionary x:Key="Light">
                             <ResourceDictionary.MergedDictionaries>
-                                <!-- ModernWPF theme resources only -->
                                 <ResourceDictionary Source="/ModernWpf;component/ThemeResources/Light.xaml" />
                             </ResourceDictionary.MergedDictionaries>
                         </ResourceDictionary>
@@ -27,8 +25,6 @@
                 </ui:ThemeResources>
                 <ui:XamlControlsResources />
             </ResourceDictionary.MergedDictionaries>
-
-            <!-- Globaler Style für GridViewColumnHeader -->
             <Style TargetType="{x:Type GridViewColumnHeader}">
                 <Setter Property="Template">
                     <Setter.Value>

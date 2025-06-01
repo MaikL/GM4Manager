@@ -14,9 +14,9 @@
     <Window.Resources>
         <local:ResourceService x:Key="Res" />
     </Window.Resources>  
-   <Grid Background="{DynamicResource {x:Static SystemColors.ControlDarkDarkBrushKey}}">  
+   <Grid>  
        <Grid.RowDefinitions>  
-           <RowDefinition Height="45"/>  
+           <RowDefinition Height="50"/>  
            <RowDefinition Height="*"/>  
            <RowDefinition Height="45"/>  
        </Grid.RowDefinitions>  
@@ -26,7 +26,7 @@
            <ColumnDefinition Width="30*"/>  
            <ColumnDefinition Width="20*"/>  
        </Grid.ColumnDefinitions>
-        <StackPanel Orientation="Horizontal" Margin="10 0 0 10" Grid.ColumnSpan="5">
+        <StackPanel Orientation="Horizontal" Margin="10 5 0 10" Grid.ColumnSpan="5">
             <Label Content="{Binding Res[lblSearchterm]}" VerticalAlignment="Center" />
             <TextBox x:Name="SearchBox" Width="300" Margin="10 0" KeyDown="SearchBox_KeyDown"/>
             <Button Content="{Binding Res[btnSearch]}" Width="100" Click="OnSearchClick" Style="{DynamicResource AccentButtonStyle}"/>

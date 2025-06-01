@@ -10,7 +10,10 @@ namespace GM4ManagerWPF.Classes
     { 
         // Event that will be raised when language is changed
         public static event EventHandler? LanguageChanged;
-
+        /// <summary>
+        /// Changes the application language to the specified culture code.
+        /// </summary>
+        /// <param name="cultureCode">The culture code to change the language to.</param>
         public static void ChangeLanguage(string cultureCode)
         {
             var culture = new CultureInfo(cultureCode);
@@ -24,6 +27,10 @@ namespace GM4ManagerWPF.Classes
             // Notify all listeners (e.g., views) about the change
             LanguageChanged?.Invoke(null, EventArgs.Empty);
         }
+        /// <summary>
+        /// Gets the list of available languages by checking for satellite assemblies.
+        /// </summary>
+        /// <returns>A list of available languages as CultureInfo objects.</returns>
         public static List<CultureInfo> GetAvailableLanguages()
         {
             var languages = new List<CultureInfo>();

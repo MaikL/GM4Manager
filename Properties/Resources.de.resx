@@ -117,8 +117,14 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="btnAddFolder" xml:space="preserve">
+    <value>Verzeichnis hinzufügen</value>
+  </data>
   <data name="btnAddMember" xml:space="preserve">
     <value>Benutzer hinzufügen</value>
+  </data>
+  <data name="btnCreateFolder" xml:space="preserve">
+    <value>Verzeichnis anlegen</value>
   </data>
   <data name="btnLoadNetworkShare" xml:space="preserve">
     <value>Netzlaufwerk laden</value>
@@ -144,17 +150,38 @@
   <data name="colDescription" xml:space="preserve">
     <value>Beschreibung</value>
   </data>
+  <data name="colEditRights" xml:space="preserve">
+    <value>Recht Bearbeiten</value>
+  </data>
   <data name="colGroupName" xml:space="preserve">
     <value>Gruppe</value>
   </data>
   <data name="colMember" xml:space="preserve">
     <value>Mitglied</value>
   </data>
+  <data name="colModify" xml:space="preserve">
+    <value>Lesen /Schreiben</value>
+  </data>
   <data name="colPermissions" xml:space="preserve">
     <value>Rechte</value>
   </data>
+  <data name="colReadAndExecute" xml:space="preserve">
+    <value>Nur Lesen</value>
+  </data>
+  <data name="colRemoveUser" xml:space="preserve">
+    <value>Benutzer entfernen</value>
+  </data>
+  <data name="colType" xml:space="preserve">
+    <value>Typ</value>
+  </data>
   <data name="colUser" xml:space="preserve">
     <value>Benutzer</value>
+  </data>
+  <data name="headerDirectoryPermissions" xml:space="preserve">
+    <value>Verzeichnis Berechtigungen</value>
+  </data>
+  <data name="headerDirectoryStructure" xml:space="preserve">
+    <value>Verzeichnisstruktur</value>
   </data>
   <data name="headerMembers" xml:space="preserve">
     <value>Mitglieder der Gruppe</value>
@@ -179,6 +206,12 @@
   </data>
   <data name="lblSearchterm" xml:space="preserve">
     <value>Suchbegriff</value>
+  </data>
+  <data name="loadGroup" xml:space="preserve">
+    <value>Lade Gruppe {name}</value>
+  </data>
+  <data name="loadingPermissions" xml:space="preserve">
+    <value>Laden der Berechtigungen ...</value>
   </data>
   <data name="menuDark" xml:space="preserve">
     <value>Dunkel</value>
@@ -211,6 +244,15 @@
   <data name="msgErrorUserAlreadyInGroup" xml:space="preserve">
     <value>Der Benutzer ist bereits in der Gruppe</value>
   </data>
+  <data name="msgFailedToLoadPermissions" xml:space="preserve">
+    <value>Laden der Berechtigungen ist fehlgeschlagen:{message}.</value>
+  </data>
+  <data name="msgFolderAlreadyExists" xml:space="preserve">
+    <value>Das Verzeichnis existiert bereits!</value>
+  </data>
+  <data name="msgFolderCreatedSuccessfully" xml:space="preserve">
+    <value>Verzeichnis "{folder}" erfolgreich angelegt.</value>
+  </data>
   <data name="msgHeaderError" xml:space="preserve">
     <value>Fehler</value>
   </data>
@@ -241,11 +283,29 @@
   <data name="msgUserSucessfullyRemoved" xml:space="preserve">
     <value>Der Benutzer {member}, wurde erfolgreich entfernt.</value>
   </data>
+  <data name="msgNoIndirectlyManagedGroupsFound" xml:space="preserve">
+    <value>Keine indirekten Gruppen gefunden</value>
+  </data>
+  <data name="startingText" xml:space="preserve">
+    <value>Starten...</value>
+  </data>
+  <data name="tabExplorer" xml:space="preserve">
+    <value>Explorer</value>
+  </data>
   <data name="tabManager" xml:space="preserve">
     <value>Manager</value>
   </data>
+  <data name="tooltipInheritanceDisabled" xml:space="preserve">
+    <value>Die Vererbung ist deaktiviert, die Berechtigungen sind speziell für diesen Ordner</value>
+  </data>
+  <data name="tooltipInheritanceEnabled" xml:space="preserve">
+    <value>Die Vererbung ist aktiv, die Berechtigungen entsprechen dem Elternverzeichnis</value>
+  </data>
   <data name="txtDescription" xml:space="preserve">
     <value>Beschreibung</value>
+  </data>
+  <data name="txtDisableInheritance" xml:space="preserve">
+    <value>Vererbung deaktivieren und Berechtigungen kopieren</value>
   </data>
   <data name="txtError" xml:space="preserve">
     <value>Fehler</value>
@@ -259,8 +319,17 @@
   <data name="txtGroupName" xml:space="preserve">
     <value>Gruppe</value>
   </data>
+  <data name="txtInheritanceDeactivated" xml:space="preserve">
+    <value>Vererbung deaktiviert</value>
+  </data>
+  <data name="txtLoading" xml:space="preserve">
+    <value>Laden...</value>
+  </data>
   <data name="txtMember" xml:space="preserve">
     <value>Mitglied</value>
+  </data>
+  <data name="txtNewFolderName" xml:space="preserve">
+    <value>neuer Verzeichnisname</value>
   </data>
   <data name="txtNoConnectionToDomain" xml:space="preserve">
     <value>Dieser Computer hat keine Verbindung zu einer Domäne</value>
@@ -268,8 +337,8 @@
   <data name="txtPathNotFound" xml:space="preserve">
     <value>Pfad nicht gefunden</value>
   </data>
-  <data name="txtPlaseSelectNetworkDirectory" xml:space="preserve">
-    <value>Bitte wählen Sie ein Netzlaufwerk</value>
+  <data name="txtPleaseSelectNetworkDirectory" xml:space="preserve">
+    <value>Netzlaufwerk auswählen...</value>
   </data>
   <data name="txtProgramName" xml:space="preserve">
     <value>Group Manager For Manager</value>
@@ -279,5 +348,26 @@
   </data>
   <data name="windowtitleAdSearch" xml:space="preserve">
     <value>Active Directory durchsuchen</value>
+  </data>
+  <data name="headerCreateFolder" xml:space="preserve">
+    <value>neues Verzeichnis erstellen</value>
+  </data>
+  <data name="headerManager" xml:space="preserve">
+    <value>Manager: {manager}</value>
+  </data>
+  <data name="msgSelectFolderFirst" xml:space="preserve">
+    <value>Bitte wählen sie ein Verzeichnis</value>
+  </data>
+  <data name="msgNoFolderSelected" xml:space="preserve">
+    <value>Es wurde kein Verzeichnis ausgewählt</value>
+  </data>
+  <data name="msgHeaderWarning" xml:space="preserve">
+    <value>Warnung</value>
+  </data>
+  <data name="ttReadOnly" xml:space="preserve">
+    <value>Der Benutzer /die Gruppe können den Inhalt nur lesen.</value>
+  </data>
+  <data name="ttReadWrite" xml:space="preserve">
+    <value>Der Benutzer /die Gruppe können den Inhalt des Ordners ändern.</value>
   </data>
 </root>

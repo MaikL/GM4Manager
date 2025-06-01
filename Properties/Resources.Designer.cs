@@ -61,11 +61,29 @@ namespace GM4ManagerWPF.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Add Folder.
+        /// </summary>
+        internal static string btnAddFolder {
+            get {
+                return ResourceManager.GetString("btnAddFolder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Add Member.
         /// </summary>
         internal static string btnAddMember {
             get {
                 return ResourceManager.GetString("btnAddMember", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Create Folder.
+        /// </summary>
+        internal static string btnCreateFolder {
+            get {
+                return ResourceManager.GetString("btnCreateFolder", resourceCulture);
             }
         }
         
@@ -142,6 +160,15 @@ namespace GM4ManagerWPF.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Edit Permission.
+        /// </summary>
+        internal static string colEditRights {
+            get {
+                return ResourceManager.GetString("colEditRights", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Group Name.
         /// </summary>
         internal static string colGroupName {
@@ -160,11 +187,47 @@ namespace GM4ManagerWPF.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Read / Write.
+        /// </summary>
+        internal static string colModify {
+            get {
+                return ResourceManager.GetString("colModify", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Permissions.
         /// </summary>
         internal static string colPermissions {
             get {
                 return ResourceManager.GetString("colPermissions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Read Only.
+        /// </summary>
+        internal static string colReadAndExecute {
+            get {
+                return ResourceManager.GetString("colReadAndExecute", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Remove User.
+        /// </summary>
+        internal static string colRemoveUser {
+            get {
+                return ResourceManager.GetString("colRemoveUser", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Type.
+        /// </summary>
+        internal static string colType {
+            get {
+                return ResourceManager.GetString("colType", resourceCulture);
             }
         }
         
@@ -178,6 +241,42 @@ namespace GM4ManagerWPF.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Create new Folder.
+        /// </summary>
+        internal static string headerCreateFolder {
+            get {
+                return ResourceManager.GetString("headerCreateFolder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Directory Permissions.
+        /// </summary>
+        internal static string headerDirectoryPermissions {
+            get {
+                return ResourceManager.GetString("headerDirectoryPermissions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Directory Structure.
+        /// </summary>
+        internal static string headerDirectoryStructure {
+            get {
+                return ResourceManager.GetString("headerDirectoryStructure", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Manager: {manager}.
+        /// </summary>
+        internal static string headerManager {
+            get {
+                return ResourceManager.GetString("headerManager", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Members of the group.
         /// </summary>
         internal static string headerMembers {
@@ -187,7 +286,7 @@ namespace GM4ManagerWPF.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to  Grants the added user permission to manage group members..
+        ///   Looks up a localized string similar to Grants the added user permission to manage group members..
         /// </summary>
         internal static string helpForAsAdmin {
             get {
@@ -246,6 +345,24 @@ namespace GM4ManagerWPF.Properties {
         internal static string lblSearchterm {
             get {
                 return ResourceManager.GetString("lblSearchterm", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Loading Group {name}.
+        /// </summary>
+        internal static string loadGroup {
+            get {
+                return ResourceManager.GetString("loadGroup", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Loading Permissions....
+        /// </summary>
+        internal static string loadingPermissions {
+            get {
+                return ResourceManager.GetString("loadingPermissions", resourceCulture);
             }
         }
         
@@ -340,6 +457,33 @@ namespace GM4ManagerWPF.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Failed to load permissions:{message}..
+        /// </summary>
+        internal static string msgFailedToLoadPermissions {
+            get {
+                return ResourceManager.GetString("msgFailedToLoadPermissions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Folder already exists!.
+        /// </summary>
+        internal static string msgFolderAlreadyExists {
+            get {
+                return ResourceManager.GetString("msgFolderAlreadyExists", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Folder &quot;{folder}&quot; created successfully.
+        /// </summary>
+        internal static string msgFolderCreatedSuccessfully {
+            get {
+                return ResourceManager.GetString("msgFolderCreatedSuccessfully", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Error.
         /// </summary>
         internal static string msgHeaderError {
@@ -358,6 +502,33 @@ namespace GM4ManagerWPF.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Warning.
+        /// </summary>
+        internal static string msgHeaderWarning {
+            get {
+                return ResourceManager.GetString("msgHeaderWarning", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No Folder selected..
+        /// </summary>
+        internal static string msgNoFolderSelected {
+            get {
+                return ResourceManager.GetString("msgNoFolderSelected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No indirectly managed groups found.
+        /// </summary>
+        internal static string msgNoIndirectlyManagedGroupsFound {
+            get {
+                return ResourceManager.GetString("msgNoIndirectlyManagedGroupsFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to This computer is not part of a domain. Cannot load managed OUs..
         /// </summary>
         internal static string msgNoPartOfADomain {
@@ -372,6 +543,15 @@ namespace GM4ManagerWPF.Properties {
         internal static string msgNoResultsForDomain {
             get {
                 return ResourceManager.GetString("msgNoResultsForDomain", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Please select a folder.
+        /// </summary>
+        internal static string msgSelectFolderFirst {
+            get {
+                return ResourceManager.GetString("msgSelectFolderFirst", resourceCulture);
             }
         }
         
@@ -430,6 +610,24 @@ namespace GM4ManagerWPF.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Starting....
+        /// </summary>
+        internal static string startingText {
+            get {
+                return ResourceManager.GetString("startingText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Explorer.
+        /// </summary>
+        internal static string tabExplorer {
+            get {
+                return ResourceManager.GetString("tabExplorer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Manager.
         /// </summary>
         internal static string tabManager {
@@ -439,11 +637,56 @@ namespace GM4ManagerWPF.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Inheritance is disabled, Permissions are unique for this folder.
+        /// </summary>
+        internal static string tooltipInheritanceDisabled {
+            get {
+                return ResourceManager.GetString("tooltipInheritanceDisabled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Enabled inheritance, Permissions are the same as the parent directory.
+        /// </summary>
+        internal static string tooltipInheritanceEnabled {
+            get {
+                return ResourceManager.GetString("tooltipInheritanceEnabled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The user / Group can only read the content of this Folder..
+        /// </summary>
+        internal static string ttReadOnly {
+            get {
+                return ResourceManager.GetString("ttReadOnly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The User / the Group can change the content of this Folder..
+        /// </summary>
+        internal static string ttReadWrite {
+            get {
+                return ResourceManager.GetString("ttReadWrite", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Description.
         /// </summary>
         internal static string txtDescription {
             get {
                 return ResourceManager.GetString("txtDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Disable Inheritance and copy permissions.
+        /// </summary>
+        internal static string txtDisableInheritance {
+            get {
+                return ResourceManager.GetString("txtDisableInheritance", resourceCulture);
             }
         }
         
@@ -484,11 +727,38 @@ namespace GM4ManagerWPF.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Inheritance Deactivated.
+        /// </summary>
+        internal static string txtInheritanceDeactivated {
+            get {
+                return ResourceManager.GetString("txtInheritanceDeactivated", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Loading....
+        /// </summary>
+        internal static string txtLoading {
+            get {
+                return ResourceManager.GetString("txtLoading", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Member.
         /// </summary>
         internal static string txtMember {
             get {
                 return ResourceManager.GetString("txtMember", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to New Folder Name.
+        /// </summary>
+        internal static string txtNewFolderName {
+            get {
+                return ResourceManager.GetString("txtNewFolderName", resourceCulture);
             }
         }
         
@@ -511,11 +781,11 @@ namespace GM4ManagerWPF.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Please select a network directory.
+        ///   Looks up a localized string similar to Select a network directory....
         /// </summary>
-        internal static string txtPlaseSelectNetworkDirectory {
+        internal static string txtPleaseSelectNetworkDirectory {
             get {
-                return ResourceManager.GetString("txtPlaseSelectNetworkDirectory", resourceCulture);
+                return ResourceManager.GetString("txtPleaseSelectNetworkDirectory", resourceCulture);
             }
         }
         

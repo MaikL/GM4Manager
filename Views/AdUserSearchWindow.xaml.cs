@@ -1,12 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
-using GM4ManagerWPF.Classes;
+﻿using GM4ManagerWPF.Classes;
 using GM4ManagerWPF.Models;
 using GM4ManagerWPF.ViewModels;
+using System.Windows;
 
 
 namespace GM4ManagerWPF.Views
@@ -17,7 +12,7 @@ namespace GM4ManagerWPF.Views
     public partial class AdUserSearchWindow : Window
     {
         public string? SelectedUserDn { get; private set; }
-
+        public string? SamAccountName { get; private set; }
         public AdUserSearchWindow()
         {
             InitializeComponent();
@@ -30,6 +25,7 @@ namespace GM4ManagerWPF.Views
             if (ResultsList.SelectedItem is LdapSearchResult result)
             {
                 SelectedUserDn = result.DistinguishedName;
+                SamAccountName = result.SamAccountName;
                 DialogResult = true;
             }
         }
