@@ -370,4 +370,13 @@
   <data name="ttReadWrite" xml:space="preserve">
     <value>Der Benutzer /die Gruppe können den Inhalt des Ordners ändern.</value>
   </data>
+  <data name="menuGroupMembers" xml:space="preserve">
+    <value>Zeige Gruppen-Mitglieder</value>
+  </data>
+  <data name="windowTitleShowGroupMembers" xml:space="preserve">
+    <value>Gruppen Mitglieder</value>
+  </data>
+  <data name="msgSelectPermissionFirst" xml:space="preserve">
+    <value>Bitte erst eine Gruppe auswählen</value>
+  </data>
 </root>

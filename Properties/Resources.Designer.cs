@@ -394,6 +394,15 @@ namespace GM4ManagerWPF.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to show Group Members.
+        /// </summary>
+        internal static string menuGroupMembers {
+            get {
+                return ResourceManager.GetString("menuGroupMembers", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Languages.
         /// </summary>
         internal static string menuLanguages {
@@ -561,6 +570,15 @@ namespace GM4ManagerWPF.Properties {
         internal static string msgSelectGroupFirst {
             get {
                 return ResourceManager.GetString("msgSelectGroupFirst", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Select Group first.
+        /// </summary>
+        internal static string msgSelectPermissionFirst {
+            get {
+                return ResourceManager.GetString("msgSelectPermissionFirst", resourceCulture);
             }
         }
         
@@ -813,6 +831,15 @@ namespace GM4ManagerWPF.Properties {
         internal static string windowtitleAdSearch {
             get {
                 return ResourceManager.GetString("windowtitleAdSearch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Group Members.
+        /// </summary>
+        internal static string windowTitleShowGroupMembers {
+            get {
+                return ResourceManager.GetString("windowTitleShowGroupMembers", resourceCulture);
             }
         }
     }

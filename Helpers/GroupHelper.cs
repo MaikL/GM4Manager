@@ -1,4 +1,5 @@
 ﻿using GM4ManagerWPF.Properties;
+using System.Diagnostics;
 using System.Security.Principal;
 
 namespace GM4ManagerWPF.Helpers
@@ -9,8 +10,10 @@ namespace GM4ManagerWPF.Helpers
 
         public static async Task<List<string>> GetUserGroupsForCurrentUserAsync(Action<string>? reportStatus = null)
         {
+            Debug.WriteLine("GroupHelper.GetUserGroupsForCurrentUserAsync called.");
             if (_cachedUserGroups != null)
             {
+                Debug.WriteLine("Returning cached user groups.");
                 return _cachedUserGroups;
             }
 

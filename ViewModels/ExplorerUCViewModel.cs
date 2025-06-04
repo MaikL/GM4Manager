@@ -135,6 +135,25 @@ namespace GM4ManagerWPF.ViewModels
 
         public ICommand OpenFolderDialogCommand { get; }
 
+        public ICommand ShowGroupMembersCommand => new RelayCommand(ShowGroupMembers, () => CanShowMembers);
+                
+        public bool CanShowMembers => SelectedPermission != null;
+
+        public void ShowGroupMembers()
+        {
+            if (SelectedPermission == null || string.IsNullOrWhiteSpace(SelectedFolderPath))
+            {
+                MessageBox.Show(Resources.msgSelectPermissionFirst, Resources.msgHeaderError, MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+            Debug.WriteLine($"ShowGroupMembers called for: {SelectedPermission.IdentityReference}");
+            var showGroupMembersView = new ShowGroupMembers
+            {                
+                DataContext = new ShowGroupMembersViewModel(SelectedPermission)
+            };
+            
+            bool? result = showGroupMembersView.ShowDialog();
+        }
 
 
         /// <summary>

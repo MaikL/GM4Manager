@@ -61,16 +61,19 @@ namespace GM4ManagerWPF.ViewModels
         }
 
         public MainWindowViewModel()
-        {            
+        {
+            var sw = Stopwatch.StartNew();            
+            Debug.WriteLine("MainWindowViewModel constructor called");
             Manager = new ManagerUCViewModel();
             _managerName = "👤 " + Resources.headerManager.Replace("{manager}", ActiveDirectoryService.GetCNFromUsername());
             SelectedTabIndex = 0; // Manager tab by default
+            
+            sw.Stop();
+            Debug.WriteLine($"Main Window View Model took: {sw.ElapsedMilliseconds} ms");
         }
 
         public async Task InitializeAsync(Action<string>? reportStatus = null)
-        {
-            await Manager.InitializeAsync(reportStatus);
-            
+        {           
             // Only preload Explorer if Explorer tab is selected on startup (not required)
             if (SelectedTabIndex == 0)
             {

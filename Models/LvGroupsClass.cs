@@ -7,6 +7,7 @@ namespace GM4ManagerWPF.Models
         public required string Cn { get; set; }
         public required string DistinguishedName { get; set; }
         public string? Description { get; set; }
-        public List<LdapMember> Members { get; set; } = [];
+        public List<LdapSearchResult> Members { get; set; } = [];
+        public bool IsPlaceholder = false;
     }
 }
