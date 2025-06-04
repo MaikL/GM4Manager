@@ -1,5 +1,6 @@
 ﻿using GM4ManagerWPF.Models;
 using GM4ManagerWPF.Properties;
+using Microsoft.VisualBasic.ApplicationServices;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -15,142 +16,98 @@ namespace GM4ManagerWPF.Classes
 {
     internal class ActiveDirectoryService
     {
-        private static ObservableCollection<LvGroupsClass>? _cachedManagedGroups;
-        private static ObservableCollection<LvGroupsClass>? _cachedManagedOUs;
+        private static ObservableCollection<LvGroupsClass>? _cachedManagedGroups;        
 
         public static string GetSamAccountName () {
             return WindowsIdentity.GetCurrent().Name.Split('\\')[1];
         }
         
-        /// <summary>
-        /// Loads the managed organizational units (OUs) into a ListView.
-        /// </summary>
-        /// <param name="lvGroups">The ListView to populate with OUs.</param>        
-        // Method to load managed organizational units (OUs) into a collection
-        public static ObservableCollection<LvGroupsClass> LoadManagedOUsToCollection(ObservableCollection<LvGroupsClass> LvGroupsCollection)
-        {
-            // Check if the cached managed OUs are already populated
-            if (_cachedManagedOUs != null && _cachedManagedOUs.Count > 0)
+        
+
+        public static ObservableCollection<LvGroupsClass> GetMembersForGroupFromLdap(string filter, ObservableCollection<LvGroupsClass> LvGroupsCollection)
+        {            
+            string domain = GetCurrentDomain();
+            Debug.WriteLine($"selected domain: {domain}");
+            // Search for all OUs managed by the user
+            DirectoryEntry rootDSE = new("LDAP://" + domain);
+            // Search for all OUs managed by the user
+            DirectorySearcher searcher = new(rootDSE)
             {
-                foreach (var item in _cachedManagedOUs)
-                {
-                    LvGroupsCollection.Add(item);
-                }
-                return LvGroupsCollection;
-            }
+                Filter = filter
+            };
+            searcher.PropertiesToLoad.Add("cn");
+            searcher.PropertiesToLoad.Add("distinguishedname");
+            searcher.PropertiesToLoad.Add("description");
+            searcher.PropertiesToLoad.Add("member");
 
-            if (LicenseManager.UsageMode == LicenseUsageMode.Designtime)
+            Debug.WriteLine($"Number of managed roles found: {searcher.FindAll().Count}");
+            foreach (SearchResult result in searcher.FindAll())
             {
-                throw new Exception("Debug Mode");
-            }
+                DirectoryEntry groupEntry = result.GetDirectoryEntry();
 
-            try
-            {                
-                string userDn = GetUserDistinguishedName(GetSamAccountName());
+                var memberDns = groupEntry.Properties["member"]
+                                    .Cast<string>()
+                                    .ToList();
 
-                if (string.IsNullOrEmpty(userDn))
+                var members = GetObjectClassesForMembers(memberDns);               
+                Debug.WriteLine($"Found group: {groupEntry.Properties["cn"].Value} ({groupEntry.Properties["distinguishedname"].Value}) - Members: {members.Count}");
+                var lvGroupsClass = new LvGroupsClass
                 {
-                    MessageBox.Show(Resources.msgUserCoulNotBeFound);
-                    throw new Exception(Resources.msgUserCoulNotBeFound);
-                }
-
-                string domain = GetCurrentDomain();
-                Debug.WriteLine($"selected domain: {domain}");
-                // Search for all OUs managed by the user
-                DirectoryEntry rootDSE = new("LDAP://" + domain);
-                // Search for all OUs managed by the user
-                DirectorySearcher searcher = new(rootDSE)
-                {
-                    Filter = $"(&(objectCategory=group)(ManagedBy={userDn}))"
+                    Cn = groupEntry.Properties["cn"].Value as string ?? string.Empty,
+                    DistinguishedName = groupEntry.Properties["distinguishedname"].Value as string ?? string.Empty,
+                    Description = groupEntry.Properties["description"].Value as string ?? string.Empty,
+                    Members = members
                 };
-                searcher.PropertiesToLoad.Add("cn");
-                searcher.PropertiesToLoad.Add("distinguishedname");
-                searcher.PropertiesToLoad.Add("description");
-                searcher.PropertiesToLoad.Add("member");
+                Debug.WriteLine($"Adding group: {lvGroupsClass.Cn} ({lvGroupsClass.DistinguishedName}) with {lvGroupsClass.Members.Count} members");
 
-                Debug.WriteLine($"Number of managed roles found: {searcher.FindAll().Count}");
-                foreach (SearchResult result in searcher.FindAll())
-                {
-                    DirectoryEntry groupEntry = result.GetDirectoryEntry();
-
-                    var memberDns = groupEntry.Properties["member"]
-                                        .Cast<string>()
-                                        .ToList();
-
-                    var memberTypes = GetObjectClassesForMembers(memberDns);
-
-                    var members = memberTypes.Select(kvp => new LdapMember
-                    {
-                        DistinguishedName = kvp.Key,
-                        ObjectClass = kvp.Value
-                    }).ToList();
-                    members = members.OrderBy(m => m.DistinguishedName, StringComparer.OrdinalIgnoreCase).ToList();
-
-                    var lvGroupsClass = new LvGroupsClass
-                    {
-                        Cn = groupEntry.Properties["cn"].Value as string ?? string.Empty,
-                        DistinguishedName = groupEntry.Properties["distinguishedname"].Value as string ?? string.Empty,
-                        Description = groupEntry.Properties["description"].Value as string ?? string.Empty,
-                        Members = members
-                    };
-
-                    LvGroupsCollection.Add(lvGroupsClass);
-                }
-
-                if (LvGroupsCollection.Count == 0)
-                {
-                    var ldapMember = new LdapMember
-                    {
-                        DistinguishedName = "",
-                        ObjectClass = "user"
-                    };
-
-                    LvGroupsClass emptylvGroupsClass = new()
-                    {
-                        Cn = "no Manager Role found",
-                        DistinguishedName = "",
-                        Description = "",
-                        Members = [ldapMember] // Wrap the single LdapMember in a List
-                    };
-                    LvGroupsCollection.Add(emptylvGroupsClass);
-                }                
+                LvGroupsCollection.Add(lvGroupsClass);                
             }
-            catch (Exception ex)
-            {
-                Debug.WriteLine(string.Concat(Properties.Resources.txtError, ": ", ex.Message));
-            }            
 
-            //_cachedManagedOUs = new ObservableCollection<LvGroupsClass>(LvGroupsCollection);
-            _cachedManagedOUs = new ObservableCollection<LvGroupsClass>(LvGroupsCollection.OrderBy(m => m.DistinguishedName, StringComparer.OrdinalIgnoreCase));
+            if (LvGroupsCollection.Count == 0)
+            {                
+                LvGroupsClass emptylvGroupsClass = new()
+                {
+                    Cn = "no Manager Role found",
+                    DistinguishedName = "",
+                    Description = "",
+                    Members = [] // Wrap the single LdapMember in a List
+                };
+                LvGroupsCollection.Add(emptylvGroupsClass);
+            }
             return LvGroupsCollection;
         }
 
-        public static Dictionary<string, string> GetObjectClassesForMembers(List<string> memberDns)
+        public static List<LdapSearchResult> GetObjectClassesForMembers(List<string> memberDns)
         {
-            var result = new Dictionary<string, string>();
+            var result = new List<LdapSearchResult>();
 
             if (memberDns == null || memberDns.Count == 0)
             {
                 return result;
             }
 
-            // LDAP-Filter mit (|(...)(...)) für alle DNs
+            // LDAP-Filter with (|(...)(...)) for all DNs in one query
             string filter = "(|";
             foreach (var dn in memberDns)
             {
-                filter += $"(distinguishedName={EscapeLdapFilterValue(dn)})";
+                string cnValue = GetNameFromCN(dn);
+                filter += $"(cn={EscapeLdapFilterValue(cnValue)})";
             }
             filter += ")";
+            Debug.WriteLine($"LDAP Filter: {filter}");
 
             using (DirectorySearcher searcher = new())
             {
                 searcher.Filter = filter;
                 searcher.PropertiesToLoad.Add("distinguishedName");
+                searcher.PropertiesToLoad.Add("cn");
+                searcher.PropertiesToLoad.Add("description");
+                searcher.PropertiesToLoad.Add("sAMAccountName");
                 searcher.PropertiesToLoad.Add("objectClass");
 
                 foreach (SearchResult sr in searcher.FindAll())
                 {
-                    //var entry = sr.GetDirectoryEntry();
+                    Debug.WriteLine($"Processing SearchResult: {sr.Path} {sr.Properties["cn"]?[0]?.ToString()}");
                     var objectClasses = sr.Properties["objectClass"];
                     string type = "";
 
@@ -163,25 +120,47 @@ namespace GM4ManagerWPF.Classes
                             break;
                         }
                     }
+                    Debug.WriteLine($"ADS - ObjectClass found: {type}");
 
-                    var dn = sr.Properties["distinguishedName"]?[0]?.ToString() ?? string.Empty;
-                    result[dn] = type;
+                    var dn = sr.Properties["distinguishedName"]?.Count > 0 ? sr.Properties["distinguishedName"][0]?.ToString() : string.Empty;
+                    var cn = sr.Properties["cn"]?.Count > 0 ? sr.Properties["cn"][0]?.ToString() : string.Empty;
+                    var description = sr.Properties["description"]?.Count > 0 ? sr.Properties["description"][0]?.ToString() : string.Empty;
+                    var samaccountname = sr.Properties["sAMAccountName"]?.Count > 0 ? sr.Properties["sAMAccountName"][0]?.ToString() : string.Empty;
+                    try
+                    {
+                        var ldap = new LdapSearchResult
+                        {
+                            DistinguishedName = dn ?? string.Empty,
+                            CommonName = cn ?? string.Empty,
+                            DisplayName = description ?? string.Empty,
+                            SamAccountName = samaccountname ?? string.Empty,
+                            ObjectClass = type
+                        };
+                        result.Add(ldap);
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"Error creating LdapSearchResult: {ex.Message}");
+                        Debug.WriteLine($"DN: {dn}, CN: {cn}, Description: {description}, SAM: {samaccountname}, Type: {type}");
+                    }
                 }
             }
 
-            return result;
+            return result.OrderBy(m => m.CommonName, StringComparer.OrdinalIgnoreCase).ToList();
         }
 
 
         // Method to load managed groups via membership into a collection
         public static ObservableCollection<LvGroupsClass> LoadManagedGroupsViaMembership(ObservableCollection<LvGroupsClass> LvGroupsCollection)
         {
+            Debug.WriteLine("Loading managed groups via membership...");
             if (_cachedManagedGroups != null && _cachedManagedGroups.Count > 0)
             {
                 foreach (var item in _cachedManagedGroups)
                 {
                     LvGroupsCollection.Add(item);
                 }
+                Debug.WriteLine($"Returning cached managed groups. Count: {_cachedManagedGroups.Count}");
                 return LvGroupsCollection;
             }
 
@@ -227,10 +206,9 @@ namespace GM4ManagerWPF.Classes
                                  : "";
                         userGroupDns.Add(groupDn);
 
-                        Debug.WriteLine($"Member of Group DN: {groupDn}");
+                        Debug.WriteLine($"ActiveDirectoryService - Member of Group DN: {groupDn} - LoadManagedGroupsViaMembership");
                     }
                 }
-
 
                 // Step 2: For each group-DN, search for groups where managedBy = group-DN
                 // Build an OR filter for all managerDns
@@ -245,7 +223,9 @@ namespace GM4ManagerWPF.Classes
                 managerSearcher.PropertiesToLoad.Add("description");
                 managerSearcher.PropertiesToLoad.Add("member");
 
-                foreach (SearchResult result in managerSearcher.FindAll())
+                var searcherResult = managerSearcher.FindAll();
+                Debug.WriteLine($"Number of managed groups found: {searcherResult.Count}");
+                foreach (SearchResult result in searcherResult)
                 {
                     DirectoryEntry groupEntry = result.GetDirectoryEntry();
                     string groupDn = groupEntry.Properties["distinguishedname"].Value?.ToString() ?? "";
@@ -253,20 +233,15 @@ namespace GM4ManagerWPF.Classes
                     // Avoid duplicates
                     if (addedDns.Contains(groupDn))
                     {
+                        Debug.WriteLine($"Skipping already added group: {groupDn}");
                         continue;
                     }
 
                     var memberDns = groupEntry.Properties["member"]
                         .Cast<string>()
                         .ToList();
-
-                    var memberTypes = GetObjectClassesForMembers(memberDns);
-
-                    var members = memberTypes.Select(kvp => new LdapMember
-                    {
-                        DistinguishedName = kvp.Key,
-                        ObjectClass = kvp.Value
-                    }).ToList();
+                    Debug.WriteLine($"Group {groupEntry.Properties["cn"].Value} has {memberDns.Count} members.");
+                    var members = GetObjectClassesForMembers(memberDns);
 
                     LvGroupsClass group = new()
                     {
@@ -282,7 +257,6 @@ namespace GM4ManagerWPF.Classes
                     addedDns.Add(groupDn);
                 }
 
-
                 // Fallback if no groups found
                 if (LvGroupsCollection.Count == 0)
                 {
@@ -291,7 +265,8 @@ namespace GM4ManagerWPF.Classes
                         Cn = Resources.msgNoIndirectlyManagedGroupsFound,
                         DistinguishedName = "",
                         Description = "",
-                        Members = []
+                        Members = [],
+                        IsPlaceholder = true
                     };
                     LvGroupsCollection.Add(fallback);
                 }
@@ -300,6 +275,7 @@ namespace GM4ManagerWPF.Classes
             {
                 Debug.WriteLine("Error: " + ex.Message);
             }
+            Debug.WriteLine($"Number of managed groups found: {LvGroupsCollection.Count}");
 
             var sorted = LvGroupsCollection.OrderBy(g => g.Cn).ToList();
             LvGroupsCollection = new ObservableCollection<LvGroupsClass>(sorted);
@@ -556,18 +532,7 @@ namespace GM4ManagerWPF.Classes
             var match = Regex.Match(CN, @"CN=([^,]+)", RegexOptions.IgnoreCase);
             return match.Success ? match.Groups[1].Value : CN;
         }
-        public static string GetNameFromCN(LdapMember member)
-        {
-            // Extrahiere den CN aus dem Distinguished Name
-            var dn = member.DistinguishedName;
-            if (string.IsNullOrWhiteSpace(dn))
-            {
-                return "";
-            }
-
-            return GetNameFromCN(dn);
-        }
-
+        
         public static string GetObjectClass(string distinguishedName)
         {
             using (var entry = new DirectoryEntry($"LDAP://{distinguishedName}"))
@@ -621,7 +586,21 @@ namespace GM4ManagerWPF.Classes
             DirectoryEntry entry = new("LDAP://" + domain);
             DirectorySearcher searcher = new(entry)
             {
-                Filter = $"(&(|(objectClass=user)(objectClass=group))(|(cn=*{searchTerm}*)(displayName=*{searchTerm}*)(sAMAccountName=*{searchTerm}*))(!(userAccountControl:1.2.840.113556.1.4.803:=2)))",
+                Filter = $"(&" +
+         "(!objectCategory=computer)" + // Exclude computers
+         "(|" +
+             "(objectCategory=person)" +
+             "(objectCategory=group)" +
+         ")" +
+         "(|" +
+             $"(cn=*{searchTerm}*)" +
+             $"(displayName=*{searchTerm}*)" +
+             $"(sAMAccountName=*{searchTerm}*)" +
+         // $"(description=*{searchTerm}*)" + possibility to also search through description
+         ")" +
+         "(!(userAccountControl:1.2.840.113556.1.4.803:=2))" + // Exclude disabled accounts
+         ")",
+
                 PageSize = 50
             };
 
@@ -629,7 +608,7 @@ namespace GM4ManagerWPF.Classes
             searcher.PropertiesToLoad.Add("cn");
             searcher.PropertiesToLoad.Add("sAMAccountName");
             searcher.PropertiesToLoad.Add("displayName");
-            searcher.PropertiesToLoad.Add("objecTClass");
+            searcher.PropertiesToLoad.Add("objecTClass");            
 
             SearchResultCollection searchResults = searcher.FindAll();
 
@@ -701,12 +680,12 @@ namespace GM4ManagerWPF.Classes
                         : "",
                     ObjectClass = "group"
                 };
-
+                Debug.WriteLine($"Found group: {ldapResult.CommonName} ({ldapResult.DistinguishedName})");
                 groups.Add(ldapResult);
             }
 
             return groups;
-        }
+        }        
 
         public static string EscapeLdapFilterValue(string value)
         {

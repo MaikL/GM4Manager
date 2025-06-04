@@ -369,4 +369,13 @@
   <data name="ttReadWrite" xml:space="preserve">
     <value>The User / the Group can change the content of this Folder.</value>
   </data>
+  <data name="menuGroupMembers" xml:space="preserve">
+    <value>show Group Members</value>
+  </data>
+  <data name="windowTitleShowGroupMembers" xml:space="preserve">
+    <value>Group Members</value>
+  </data>
+  <data name="msgSelectPermissionFirst" xml:space="preserve">
+    <value>Select Group first</value>
+  </data>
 </root>

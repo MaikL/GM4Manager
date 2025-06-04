@@ -51,8 +51,8 @@ namespace GM4ManagerWPF
                 {
                     splashScreen.Close();
                 });
-            };            
-
+            };
+            
             sw.Stop();
             Debug.WriteLine($"Splash dauerte: {sw.ElapsedMilliseconds} ms");
 

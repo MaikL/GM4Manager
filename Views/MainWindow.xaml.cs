@@ -13,6 +13,7 @@ namespace GM4ManagerWPF
     {
         public MainWindow()
         {
+            Debug.WriteLine("MainWindow constructor called");
             var sw = Stopwatch.StartNew();
 
             InitializeComponent();

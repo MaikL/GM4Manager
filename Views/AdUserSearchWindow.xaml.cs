@@ -1,6 +1,7 @@
 ﻿using GM4ManagerWPF.Classes;
 using GM4ManagerWPF.Models;
 using GM4ManagerWPF.ViewModels;
+using System.DirectoryServices;
 using System.Windows;
 
 
@@ -13,6 +14,7 @@ namespace GM4ManagerWPF.Views
     {
         public string? SelectedUserDn { get; private set; }
         public string? SamAccountName { get; private set; }
+        public LdapSearchResult SearchResult { get; set; } = new LdapSearchResult();
         public AdUserSearchWindow()
         {
             InitializeComponent();
@@ -26,6 +28,7 @@ namespace GM4ManagerWPF.Views
             {
                 SelectedUserDn = result.DistinguishedName;
                 SamAccountName = result.SamAccountName;
+                SearchResult = result;
                 DialogResult = true;
             }
         }

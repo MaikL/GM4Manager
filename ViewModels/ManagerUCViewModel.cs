@@ -44,13 +44,14 @@ namespace GM4ManagerWPF.ViewModels
         {
             GroupMembers.Clear();
 
-            if (SelectedGroup?.Members != null)
+            if (SelectedGroup?.Members != null && SelectedGroup.Members.Count > 0)
             {
                 foreach (var member in SelectedGroup.Members)
                 {
+                    Debug.WriteLine($"Adding member: {member.CommonName} ({member.ObjectClass}) to group {SelectedGroup.Cn}");
                     GroupMembers.Add(new GroupMemberDisplay
                     {
-                        Name = ActiveDirectoryService.GetNameFromCN(member),
+                        Name = ActiveDirectoryService.GetNameFromCN(member.CommonName),
                         Icon = member.ObjectClass == "user" ? "👤" :
                                member.ObjectClass == "group" ? "👥" : "❓"
                     });
@@ -80,7 +81,7 @@ namespace GM4ManagerWPF.ViewModels
 
         private bool CanRemoveMember(object? parameter)
         {
-            Debug.WriteLine($"CanRemoveMember called with SelectedGroup: {SelectedGroup?.Cn}, SelectedMember: {SelectedMember?.Name}");
+            //Debug.WriteLine($"CanRemoveMember called with SelectedGroup: {SelectedGroup?.Cn}, SelectedMember: {SelectedMember?.Name}");
             return SelectedGroup != null && SelectedMember != null;
         }
 
@@ -93,7 +94,7 @@ namespace GM4ManagerWPF.ViewModels
 
             // Find the original LdapMember object in the group based on the display name
             var memberToRemove = SelectedGroup.Members?
-                .FirstOrDefault(m => ActiveDirectoryService.GetNameFromCN(m) == SelectedMember.Name);
+                .FirstOrDefault(m => ActiveDirectoryService.GetNameFromCN(m.CommonName) == SelectedMember.Name);
 
             if (memberToRemove?.DistinguishedName == null)
             {
@@ -161,11 +162,7 @@ namespace GM4ManagerWPF.ViewModels
                         }
 
                         // Create a new LdapMember object
-                        var newMember = new LdapMember
-                        {
-                            DistinguishedName = dn,
-                            ObjectClass = "user" // Assuming only users are added via this dialog
-                        };
+                        var newMember = adSearchWindow.SearchResult;
 
                         // Add to the internal group member list
                         SelectedGroup.Members.Add(newMember);
@@ -208,14 +205,19 @@ namespace GM4ManagerWPF.ViewModels
 
         public ManagerUCViewModel()
         {
+            var sw = Stopwatch.StartNew();            
+            Debug.WriteLine("[ManagerUCViewModel] Initializing ManagerUCViewModel...");
             AddMemberCommand = new RelayCommand(AddSelectedMember, CanAddMember);
             RemoveMemberCommand = new RelayCommand(RemoveSelectedMember, CanRemoveMember);
-            LvGroupsCollection = ActiveDirectoryService.LoadManagedGroupsViaMembership(new ObservableCollection<LvGroupsClass>());
             // get PropertyChanged-Event from ResourceService
-            ResourceService.Instance.PropertyChanged += OnLanguageChanged;          
+            ResourceService.Instance.PropertyChanged += OnLanguageChanged;
+
+            sw.Stop();
+            Debug.WriteLine($"ManagerUCViewModel took : {sw.ElapsedMilliseconds} ms");
         }
         public async Task InitializeAsync(Action<string>? reportStatus = null)
         {
+            var sw = Stopwatch.StartNew();            
             try
             {
                 reportStatus?.Invoke("Loading Active Directory groups...");
@@ -229,9 +231,13 @@ namespace GM4ManagerWPF.ViewModels
                 reportStatus?.Invoke("Failed to load Manager data.");
                 Debug.WriteLine($"[ManagerUC] Initialization error: {ex.Message}");
             }
+            
+            sw.Stop();
+            Debug.WriteLine($"Splash dauerte: {sw.ElapsedMilliseconds} ms");
         }
         private async Task LoadManagedGroupsViaMembership()
         {
+            var sw = Stopwatch.StartNew();            
             // Simulate async AD group loading
             await Task.Delay(100); // Remove in production
 
@@ -244,12 +250,14 @@ namespace GM4ManagerWPF.ViewModels
                 LvGroupsCollection.Add(group);
             }
 
-            // Optionally auto-select the first group
-            if (LvGroupsCollection.Count > 0)
+            if (LvGroupsCollection.Any(g => !g.IsPlaceholder))
             {
-                SelectedGroup = LvGroupsCollection[0];
+                SelectedGroup = LvGroupsCollection.First(g => !g.IsPlaceholder);
             }
-        }
+            
+            sw.Stop();
+            Debug.WriteLine($"ManagerUCViewModel LoadManagedGroupsViaMembership : {sw.ElapsedMilliseconds} ms");
+        }        
 
         public event PropertyChangedEventHandler? PropertyChanged;
         protected void OnPropertyChanged([CallerMemberName] string? name = null) =>

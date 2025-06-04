@@ -102,6 +102,13 @@
           SelectedItem="{Binding SelectedPermission, Mode=TwoWay}"   
           IsReadOnly="True"
           >
+                <DataGrid.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem Header="{Binding Res[menuGroupMembers]}" 
+                      Command="{Binding ShowGroupMembersCommand}" 
+                      CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+                    </ContextMenu>
+                </DataGrid.ContextMenu>
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="Group" Binding="{Binding IdentityReference}" />
                     <DataGridTemplateColumn Header="Permissions">
