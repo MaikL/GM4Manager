@@ -1,33 +1,38 @@
-﻿using GM4ManagerWPF.Classes;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using GM4ManagerWPF.Classes;
 using GM4ManagerWPF.Localization;
 using GM4ManagerWPF.Models;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
 
 namespace GM4ManagerWPF.ViewModels
 {
-    public class AdUserSearchWindowViewModel : INotifyPropertyChanged
+    public partial class AdUserSearchWindowViewModel : ObservableObject
     {
         public static ResourceService Res => ResourceService.Instance;
 
-        private string _searchTerm = String.Empty;
-        public string SearchTerm
-        {
-            get => _searchTerm;
-            set
-            {
-                _searchTerm = value;
-                OnPropertyChanged();
-                SearchUsers();
-            }
-        }        
+        [ObservableProperty]
+        private string searchTerm = string.Empty;
+        [ObservableProperty]
+        private bool isAdminOptionEnabled;
 
-        public ObservableCollection<LdapSearchResult> SearchResults { get; } = [];
+        public ObservableCollection<LdapSearchResult> SearchResults { get; } = new();
+
+        public AdUserSearchWindowViewModel()
+        {
+        }
+        public AdUserSearchWindowViewModel(bool enableAdminOption)
+        {
+            IsAdminOptionEnabled = enableAdminOption;
+        }
+        partial void OnSearchTermChanged(string value)
+        {
+            SearchUsers();
+        }
 
         private void SearchUsers()
         {
             SearchResults.Clear();
+
             if (string.IsNullOrWhiteSpace(SearchTerm))
             {
                 return;
@@ -39,15 +44,5 @@ namespace GM4ManagerWPF.ViewModels
                 SearchResults.Add(result);
             }
         }
-
-        public AdUserSearchWindowViewModel()
-        {
-            
-        }                
-
-        public event PropertyChangedEventHandler? PropertyChanged;
-
-        protected void OnPropertyChanged([CallerMemberName] string? name = null) =>
-              PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
     }
 }

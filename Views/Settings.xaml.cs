@@ -10,10 +10,6 @@ namespace GM4ManagerWPF
         public Settings()
         {
             InitializeComponent();
-        }
-        private void ReadSettings()
-        {
-            //AppSettingsManager.Settings;
-        }
+        }        
     }
 }

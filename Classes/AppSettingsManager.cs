@@ -9,14 +9,13 @@ namespace GM4ManagerWPF.Classes
     public static class AppSettingsManager
     {
         // Backing field for the loaded settings instance
-        private static AppSettings? _settings;
+        private static AppSettings? _settings;        
 
         // Configuration file name
         private static readonly string SettingsFileName = "appsettings.json";
 
         // Flag to prevent reloading
         private static bool _isLoaded = false;
-
         // Public accessor for app settings
         public static AppSettings Settings
         {
@@ -34,7 +33,7 @@ namespace GM4ManagerWPF.Classes
 
                 return _settings!;
             }
-        }
+        }        
 
         // Detect if the app is running in design mode (e.g., Visual Studio Designer)
         public static bool IsInDesignMode =>
@@ -54,7 +53,7 @@ namespace GM4ManagerWPF.Classes
                 //throw new FileNotFoundException("Configuration file not found.", path);
             }
 
-            string json = File.ReadAllText(path);
+            string json = File.ReadAllText(path);            
             _settings = JsonSerializer.Deserialize<AppSettings>(json)
                         ?? throw new InvalidOperationException("Failed to deserialize appsettings.json.");
 

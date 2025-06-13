@@ -1,119 +1,126 @@
-﻿using GM4ManagerWPF.Classes;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using GM4ManagerWPF.Classes;
 using GM4ManagerWPF.Helpers;
+using GM4ManagerWPF.Interfaces;
 using GM4ManagerWPF.Localization;
+using GM4ManagerWPF.Models;
 using GM4ManagerWPF.Properties;
 using GM4ManagerWPF.Views;
-using GM4ManagerWPF.Models;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Diagnostics;
-using System.Runtime.CompilerServices;
 using System.Windows;
-using System.Windows.Input;
 
 namespace GM4ManagerWPF.ViewModels
 {
-    public class ManagerUCViewModel : INotifyPropertyChanged
+    public partial class ManagerUCViewModel : ObservableObject
     {
         public static ResourceService Res => ResourceService.Instance;
-        public ObservableCollection<LvGroupsClass> LvGroupsCollection { get; } =
-                ActiveDirectoryService.LoadManagedGroupsViaMembership(new ObservableCollection<LvGroupsClass>());
-        public ObservableCollection<string> LvMembersCollection { get; set; } = [];
-        private ObservableCollection<GroupMemberDisplay> _groupMembers = [];
-        public ICommand AddMemberCommand { get; }
-        private GroupMemberDisplay? _selectedMember;       
 
-        private LvGroupsClass _selectedGroup = new()
+        [ObservableProperty]
+        private ObservableCollection<LvGroupsClass> lvGroupsCollection =
+                ActiveDirectoryService.LoadManagedGroupsViaMembership([]);
+
+        public ObservableCollection<string> LvMembersCollection { get; set; } = [];
+
+        [ObservableProperty]
+        private ObservableCollection<GroupMemberDisplay> groupMembers = [];                
+
+        [ObservableProperty]
+        private LvGroupsClass? selectedGroup;
+        partial void OnSelectedGroupChanged(LvGroupsClass? value)
         {
-            Cn = string.Empty,
-            DistinguishedName = string.Empty,
-            Description = null,
-            Members = []
-        };
-        public LvGroupsClass SelectedGroup
+            UpdateGroupMembers();
+        }        
+
+        partial void OnSelectedMemberChanged(GroupMemberDisplay? value)
         {
-            get => _selectedGroup;
-            set
-            {
-                _selectedGroup = value;
-                OnPropertyChanged(nameof(SelectedGroup));
-                UpdateGroupMembers();
-            }
+            RemoveSelectedMemberCommand.NotifyCanExecuteChanged();
+            AddSelectedMemberCommand.NotifyCanExecuteChanged();
         }
+
         private void UpdateGroupMembers()
         {
-            GroupMembers.Clear();
-
-            if (SelectedGroup?.Members != null && SelectedGroup.Members.Count > 0)
+            try
             {
-                foreach (var member in SelectedGroup.Members)
+                _cursorService.SetBusyCursor();
+                Debug.WriteLine($"Updating group members for group: {SelectedGroup?.Cn}");
+                GroupMembers.Clear();
+
+                if (SelectedGroup != null)
                 {
-                    Debug.WriteLine($"Adding member: {member.CommonName} ({member.ObjectClass}) to group {SelectedGroup.Cn}");
-                    GroupMembers.Add(new GroupMemberDisplay
+                    SelectedGroup.Members?.Clear();
+                    ObservableCollection<LvGroupsClass> LvGroupsCollection = [];
+                    var filter = $"(&(objectCategory=group)(cn={SelectedGroup.Cn}))";
+                    LvGroupsCollection = ActiveDirectoryService.GetMembersForGroupFromLdap(filter, LvGroupsCollection);
+                    foreach (var group in LvGroupsCollection)
                     {
-                        Name = ActiveDirectoryService.GetNameFromCN(member.CommonName),
-                        Icon = member.ObjectClass == "user" ? "👤" :
-                               member.ObjectClass == "group" ? "👥" : "❓"
-                    });
+                        foreach (var member in group.Members)
+                        {
+                            GroupMembers?.Add(new GroupMemberDisplay
+                            {
+                                Name = $" {member.CommonName} ({member.DisplayName})",
+                                SamAccountName = member.SamAccountName,
+                                Cn = member.CommonName,
+                                Icon = member.ObjectClass == "user" ? "👤" :
+                                       member.ObjectClass == "group" ? "👥" : "❓"
+                            });
+                            Debug.WriteLine($"UpdateGroupMembers - Added member: {member.CommonName} ({member.DisplayName}) - {member.SamAccountName}");
+                        }
+                    }
+                    SelectedGroup.Members = LvGroupsCollection.SelectMany(g => g.Members).ToList();
                 }
             }
-        }
-
-        public GroupMemberDisplay? SelectedMember
-        {
-            get => _selectedMember;
-            set
+            finally
             {
-                _selectedMember = value;
-                OnPropertyChanged(nameof(SelectedMember));
-            }
-        }
-        private string _newMemberCN = string.Empty;
-        public string NewMemberCN
-        {
-            get => _newMemberCN;
-            set
-            {
-                _newMemberCN = value;
-                OnPropertyChanged(nameof(NewMemberCN));
+                _cursorService.ResetCursor();
             }
         }
 
+        [ObservableProperty]
+        private GroupMemberDisplay? selectedMember;
+
+        [ObservableProperty]
+        private string? newMemberCN;
+        
         private bool CanRemoveMember(object? parameter)
         {
-            //Debug.WriteLine($"CanRemoveMember called with SelectedGroup: {SelectedGroup?.Cn}, SelectedMember: {SelectedMember?.Name}");
             return SelectedGroup != null && SelectedMember != null;
         }
 
+        [RelayCommand(CanExecute = nameof(CanRemoveMember))]
         private void RemoveSelectedMember(object? parameter)
         {
             if (SelectedGroup == null || SelectedMember == null || SelectedMember.Name == null)
             {
                 return;
             }
-
-            // Find the original LdapMember object in the group based on the display name
-            var memberToRemove = SelectedGroup.Members?
-                .FirstOrDefault(m => ActiveDirectoryService.GetNameFromCN(m.CommonName) == SelectedMember.Name);
-
-            if (memberToRemove?.DistinguishedName == null)
+            else
             {
-                MessageBox.Show(Resources.msgErrorCouldNotFindMember, Resources.msgHeaderError, MessageBoxButton.OK, MessageBoxImage.Error);
-                return;
+                Debug.WriteLine($"SelectedMember.SamAccountName: {SelectedMember?.SamAccountName}");                
+
+                // Find the original LdapMember object in the group based on the display name
+                var memberToRemove = SelectedGroup.Members?
+                    .FirstOrDefault(m => m.SamAccountName == SelectedMember.SamAccountName);
+                Debug.WriteLine($"Removing member: {SelectedMember.Cn} {SelectedMember.SamAccountName} ");
+                if (memberToRemove?.DistinguishedName == null)
+                {
+                    MessageBox.Show(Resources.msgErrorCouldNotFindMember, Resources.msgHeaderError, MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+
+                // Remove the member from Active Directory
+                ActiveDirectoryService.RemoveUserFromGroup(
+                    SelectedGroup.DistinguishedName,
+                    memberToRemove.DistinguishedName,
+                    SelectedMember.Name);
+
+                // Remove from the internal group member list
+                SelectedGroup.Members?.Remove(memberToRemove);
+
+                // Remove from the UI-bound collection
+                GroupMembers.Remove(SelectedMember);
             }
-
-            // Remove the member from Active Directory
-            ActiveDirectoryService.RemoveUserFromGroup(
-                SelectedGroup.DistinguishedName,
-                memberToRemove.DistinguishedName,
-                SelectedMember.Name);
-
-            // Remove from the internal group member list
-            SelectedGroup.Members?.Remove(memberToRemove);
-
-            // Remove from the UI-bound collection
-            GroupMembers.Remove(SelectedMember);
-
             // Clear the selection
             SelectedMember = null;
         }
@@ -122,7 +129,9 @@ namespace GM4ManagerWPF.ViewModels
         /// Opens a separate Window to search for and add a member to the selected group.
         /// </summary>
         /// <param name="parameter"></param>
-        private void AddSelectedMember(object? parameter)
+
+        [RelayCommand(CanExecute = nameof(CanAddMember))]
+        private void AddSelectedMember()
         {
             if (SelectedGroup == null)
             {
@@ -131,7 +140,7 @@ namespace GM4ManagerWPF.ViewModels
             }
 
             // Open the Active Directory user search window
-            var adSearchWindow = new AdUserSearchWindow();
+            var adSearchWindow = new AdUserSearchWindow(false);
             bool? result = adSearchWindow.ShowDialog();
 
             if (result == true && !string.IsNullOrWhiteSpace(adSearchWindow.SelectedUserDn))
@@ -139,7 +148,7 @@ namespace GM4ManagerWPF.ViewModels
                 string dn = adSearchWindow.SelectedUserDn;
                 string cn = ActiveDirectoryService.GetNameFromCN(dn);
 
-                
+
                 if (SelectedGroup.Members == null)
                 {
                     SelectedGroup.Members = [];
@@ -168,7 +177,7 @@ namespace GM4ManagerWPF.ViewModels
                         SelectedGroup.Members.Add(newMember);
 
                         // Add to the UI-bound collection with icon
-                        GroupMembers.Add(new GroupMemberDisplay
+                        GroupMembers?.Add(new GroupMemberDisplay
                         {
                             Name = cn,
                             Icon = "👤"
@@ -186,38 +195,22 @@ namespace GM4ManagerWPF.ViewModels
                 }
             }
         }
+        
 
-
-        private bool CanAddMember(object? parameter)
+        private bool CanAddMember()
         {
             return SelectedGroup != null;
-        }
+        }        
+        
+        private readonly ICursorService _cursorService;
 
-        public ObservableCollection<GroupMemberDisplay> GroupMembers
+        public ManagerUCViewModel(ICursorService cursorService)
         {
-            get => _groupMembers;
-            set
-            {
-                _groupMembers = value;
-                OnPropertyChanged(nameof(GroupMembers));
-            }
-        }
-
-        public ManagerUCViewModel()
-        {
-            var sw = Stopwatch.StartNew();            
-            Debug.WriteLine("[ManagerUCViewModel] Initializing ManagerUCViewModel...");
-            AddMemberCommand = new RelayCommand(AddSelectedMember, CanAddMember);
-            RemoveMemberCommand = new RelayCommand(RemoveSelectedMember, CanRemoveMember);
-            // get PropertyChanged-Event from ResourceService
-            ResourceService.Instance.PropertyChanged += OnLanguageChanged;
-
-            sw.Stop();
-            Debug.WriteLine($"ManagerUCViewModel took : {sw.ElapsedMilliseconds} ms");
+            _cursorService = cursorService;
         }
         public async Task InitializeAsync(Action<string>? reportStatus = null)
         {
-            var sw = Stopwatch.StartNew();            
+            var sw = Stopwatch.StartNew();
             try
             {
                 reportStatus?.Invoke("Loading Active Directory groups...");
@@ -231,15 +224,15 @@ namespace GM4ManagerWPF.ViewModels
                 reportStatus?.Invoke("Failed to load Manager data.");
                 Debug.WriteLine($"[ManagerUC] Initialization error: {ex.Message}");
             }
-            
+
             sw.Stop();
             Debug.WriteLine($"Splash dauerte: {sw.ElapsedMilliseconds} ms");
         }
         private async Task LoadManagedGroupsViaMembership()
         {
-            var sw = Stopwatch.StartNew();            
+            var sw = Stopwatch.StartNew();
             // Simulate async AD group loading
-            await Task.Delay(100); // Remove in production
+            await Task.Delay(100);
 
             var groups = ActiveDirectoryService.LoadManagedGroupsViaMembership(new ObservableCollection<LvGroupsClass>());
 
@@ -254,19 +247,9 @@ namespace GM4ManagerWPF.ViewModels
             {
                 SelectedGroup = LvGroupsCollection.First(g => !g.IsPlaceholder);
             }
-            
+
             sw.Stop();
             Debug.WriteLine($"ManagerUCViewModel LoadManagedGroupsViaMembership : {sw.ElapsedMilliseconds} ms");
-        }        
-
-        public event PropertyChangedEventHandler? PropertyChanged;
-        protected void OnPropertyChanged([CallerMemberName] string? name = null) =>
-              PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
-        private void OnLanguageChanged(object? sender, PropertyChangedEventArgs e)
-        {
-            Debug.WriteLine("Updating Language");
-                //UpdateDynamicProperties();
         }
-        public ICommand RemoveMemberCommand { get; }      
     }
 }

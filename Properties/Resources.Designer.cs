@@ -88,6 +88,24 @@ namespace GM4ManagerWPF.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Deactivate Inheritance.
+        /// </summary>
+        internal static string btnDeactivateInheritance {
+            get {
+                return ResourceManager.GetString("btnDeactivateInheritance", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Remove special permissions.
+        /// </summary>
+        internal static string btnEnableInheritance {
+            get {
+                return ResourceManager.GetString("btnEnableInheritance", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Load Network Share.
         /// </summary>
         internal static string btnLoadNetworkShare {
@@ -286,6 +304,15 @@ namespace GM4ManagerWPF.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to GM4Manager - Group Manager for Manager (Version: {version}).
+        /// </summary>
+        internal static string headerTitle {
+            get {
+                return ResourceManager.GetString("headerTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Grants the added user permission to manage group members..
         /// </summary>
         internal static string helpForAsAdmin {
@@ -403,6 +430,24 @@ namespace GM4ManagerWPF.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Help.
+        /// </summary>
+        internal static string menuHelp {
+            get {
+                return ResourceManager.GetString("menuHelp", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Help.
+        /// </summary>
+        internal static string menuHelpLink {
+            get {
+                return ResourceManager.GetString("menuHelpLink", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Languages.
         /// </summary>
         internal static string menuLanguages {
@@ -430,6 +475,24 @@ namespace GM4ManagerWPF.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Check for Update.
+        /// </summary>
+        internal static string menuUpdateLink {
+            get {
+                return ResourceManager.GetString("menuUpdateLink", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 🔔 Update available: {LatestVersion}.
+        /// </summary>
+        internal static string menuVersion {
+            get {
+                return ResourceManager.GetString("menuVersion", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Missing Permission, ask your Administrator.
         /// </summary>
         internal static string msgAskYourAdministrator {
@@ -444,6 +507,15 @@ namespace GM4ManagerWPF.Properties {
         internal static string msgErrorAddingUser {
             get {
                 return ResourceManager.GetString("msgErrorAddingUser", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error at creating a new folder: {message}.
+        /// </summary>
+        internal static string msgErrorAtCreatingNewFolder {
+            get {
+                return ResourceManager.GetString("msgErrorAtCreatingNewFolder", resourceCulture);
             }
         }
         
@@ -520,6 +592,15 @@ namespace GM4ManagerWPF.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A new version ({latestVersion}) is available..
+        /// </summary>
+        internal static string msgNewVersion {
+            get {
+                return ResourceManager.GetString("msgNewVersion", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to No Folder selected..
         /// </summary>
         internal static string msgNoFolderSelected {
@@ -579,6 +660,15 @@ namespace GM4ManagerWPF.Properties {
         internal static string msgSelectPermissionFirst {
             get {
                 return ResourceManager.GetString("msgSelectPermissionFirst", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Update Available.
+        /// </summary>
+        internal static string msgUpdateAvailable {
+            get {
+                return ResourceManager.GetString("msgUpdateAvailable", resourceCulture);
             }
         }
         
@@ -831,6 +921,15 @@ namespace GM4ManagerWPF.Properties {
         internal static string windowtitleAdSearch {
             get {
                 return ResourceManager.GetString("windowtitleAdSearch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Permission Progress.
+        /// </summary>
+        internal static string windowTitleProgressDialogWindow {
+            get {
+                return ResourceManager.GetString("windowTitleProgressDialogWindow", resourceCulture);
             }
         }
         

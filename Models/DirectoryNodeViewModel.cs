@@ -1,78 +1,63 @@
-﻿using GM4ManagerWPF.Helpers;
-using GM4ManagerWPF.Properties;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using GM4ManagerWPF.ViewModels;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
-using System.Runtime.CompilerServices;
-using System.Windows.Input;
 
 namespace GM4ManagerWPF.Models
 {
-    public class DirectoryNodeViewModel : INotifyPropertyChanged
+    public partial class DirectoryNodeViewModel : ObservableObject
     {
         private readonly ExplorerUCViewModel _parent;
-        public string Name
-        {
-            get
-            {
-                if (FullPath == null)
-                {
-                    return string.Empty;
-                }
-
-                var name = Path.GetFileName(FullPath.TrimEnd(Path.DirectorySeparatorChar));
-                return string.IsNullOrEmpty(name) ? FullPath : name;
-            }
-            private set { } // Add a private setter to allow assignment within the constructor
-        }
 
         public string FullPath { get; }
 
-        public ICommand SelectCommand { get; }
-        public ObservableCollection<DirectoryNodeViewModel> Children { get; set; } = [];
+        public string Name => Path.GetFileName(FullPath.TrimEnd(Path.DirectorySeparatorChar)) ?? FullPath;
 
-        private bool _isExpanded;
-        public bool IsExpanded
-        {
-            get => _isExpanded;
-            set
-            {
-                _isExpanded = value;
-                OnPropertyChanged();
-                if (_isExpanded)
-                {
-                    LoadChildren();
-                }
-            }
-        }
-        
+        public ObservableCollection<DirectoryNodeViewModel> Children { get; } = new ObservableCollection<DirectoryNodeViewModel>();
+
+        [ObservableProperty]
+        private bool isExpanded;
+
+        [ObservableProperty]
+        private bool isSelected;
+
+        public IAsyncRelayCommand OnNodeSelectedAsyncCommand { get; }
 
         public DirectoryNodeViewModel(string fullPath, ExplorerUCViewModel parent)
         {
             _parent = parent;
             FullPath = fullPath;
-            Name = fullPath;
-            
-            Children.Add(null!);
+            Children.Add(null!); // Lazy loading placeholder
 
-            SelectCommand = new AsyncRelayCommand(() => _parent.LoadPermissionsAsync(FullPath));
+            // Initialize OnNodeSelectedAsyncCommand to avoid nullability issues
+            OnNodeSelectedAsyncCommand = new AsyncRelayCommand(OnNodeSelectedAsync);
         }
-        private bool _isSelected;
-        public bool IsSelected
+
+        partial void OnIsExpandedChanged(bool value)
         {
-            get => _isSelected;
-            set
+            if (value)
+                LoadChildren();
+            else
             {
-                _isSelected = value;
-                OnPropertyChanged();
-                if (_isSelected)
-                {
-                    _ = _parent.LoadPermissionsAsync(FullPath); // fire & forget
-                }
+                Children.Clear();
+                Children.Add(null!);
             }
         }
+
+        partial void OnIsSelectedChanged(bool value)
+        {
+            if (value)
+            {
+                if (_parent.SelectedNode != this)
+                {
+                    _parent.SelectedNode = this;
+                }
+                _parent.LoadPermissions(FullPath);
+            }
+        }
+
         private void LoadChildren()
         {
             if (Children.Count == 1 && Children[0] == null)
@@ -85,7 +70,6 @@ namespace GM4ManagerWPF.Models
                         var dirInfo = new DirectoryInfo(dir);
                         if ((dirInfo.Attributes & (FileAttributes.Hidden | FileAttributes.System)) == 0)
                         {
-                            Debug.WriteLine($"Adding directory: {dir}");
                             Children.Add(new DirectoryNodeViewModel(dir, _parent));
                         }
                     }
@@ -99,15 +83,14 @@ namespace GM4ManagerWPF.Models
             try
             {
                 Children.Clear();
-
                 if (Directory.Exists(FullPath))
                 {
                     foreach (var dir in Directory.GetDirectories(FullPath))
                     {
-                        var child = new DirectoryNodeViewModel(dir, this._parent);
+                        var child = new DirectoryNodeViewModel(dir, _parent);
                         Children.Add(child);
                     }
-                    this.IsExpanded = true;
+                    IsExpanded = true;
                 }
             }
             catch (Exception ex)
@@ -116,20 +99,13 @@ namespace GM4ManagerWPF.Models
             }
         }
 
-
         public void RefreshParentBranch()
         {
             try
             {
-                // Refresh the current node's children
                 Refresh();
-
-                // Refresh the parent node if it exists
                 var parentNode = _parent.RootItems.FirstOrDefault(node => node.Children.Contains(this));
-                if (parentNode != null)
-                {
-                    parentNode.Refresh();
-                }
+                parentNode?.Refresh();
             }
             catch (Exception ex)
             {
@@ -137,9 +113,10 @@ namespace GM4ManagerWPF.Models
             }
         }
 
-        public event PropertyChangedEventHandler? PropertyChanged; // Declared as nullable to fix CS8618
-        protected void OnPropertyChanged([CallerMemberName] string? name = null) =>
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+        private async Task OnNodeSelectedAsync()
+        {
+            // Placeholder for async logic when a node is selected
+            await Task.CompletedTask;
+        }
     }
-
 }

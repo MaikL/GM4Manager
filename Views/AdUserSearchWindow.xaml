@@ -30,7 +30,9 @@
             <Label Content="{Binding Res[lblSearchterm]}" VerticalAlignment="Center" />
             <TextBox x:Name="SearchBox" Width="300" Margin="10 0" KeyDown="SearchBox_KeyDown"/>
             <Button Content="{Binding Res[btnSearch]}" Width="100" Click="OnSearchClick" Style="{DynamicResource AccentButtonStyle}"/>
-            <CheckBox x:Name="cbAsAdmin" Content="{Binding Res[cbAsAdmin]}" Margin="10 0 10 0" ToolTip="{Binding Res[helpForAsAdmin]}"/>
+            <CheckBox x:Name="cbAsAdmin" Content="{Binding Res[cbAsAdmin]}"
+                      Margin="10 0 10 0" ToolTip="{Binding Res[helpForAsAdmin]}"
+                      IsEnabled="{Binding IsAdminOptionEnabled}" />
         </StackPanel>
         <ListBox x:Name="ResultsList" Grid.Column="0" Grid.ColumnSpan="5" Grid.Row="1" Margin="10,10,10,18"
                 ItemsSource="{Binding SearchResults}"/>

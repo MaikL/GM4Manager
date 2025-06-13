@@ -1,4 +1,5 @@
-﻿using GM4ManagerWPF.Models;
+﻿using GM4ManagerWPF.Localization;
+using GM4ManagerWPF.Models;
 using GM4ManagerWPF.Properties;
 using Microsoft.VisualBasic.ApplicationServices;
 using System.Collections.ObjectModel;
@@ -16,14 +17,13 @@ namespace GM4ManagerWPF.Classes
 {
     internal class ActiveDirectoryService
     {
-        private static ObservableCollection<LvGroupsClass>? _cachedManagedGroups;        
+        private static ObservableCollection<LvGroupsClass>? _cachedManagedGroups;
+        public static ResourceService Res => ResourceService.Instance;
 
         public static string GetSamAccountName () {
             return WindowsIdentity.GetCurrent().Name.Split('\\')[1];
         }
-        
-        
-
+                
         public static ObservableCollection<LvGroupsClass> GetMembersForGroupFromLdap(string filter, ObservableCollection<LvGroupsClass> LvGroupsCollection)
         {            
             string domain = GetCurrentDomain();
@@ -39,6 +39,7 @@ namespace GM4ManagerWPF.Classes
             searcher.PropertiesToLoad.Add("distinguishedname");
             searcher.PropertiesToLoad.Add("description");
             searcher.PropertiesToLoad.Add("member");
+            searcher.PropertiesToLoad.Add("objectClass");
 
             Debug.WriteLine($"Number of managed roles found: {searcher.FindAll().Count}");
             foreach (SearchResult result in searcher.FindAll())
@@ -144,6 +145,8 @@ namespace GM4ManagerWPF.Classes
                         Debug.WriteLine($"DN: {dn}, CN: {cn}, Description: {description}, SAM: {samaccountname}, Type: {type}");
                     }
                 }
+                Debug.WriteLine($"Number of members found: {result.Count}");
+                Debug.WriteLine($"Members: {string.Join(", ", result.Select(m => m.CommonName))}");                
             }
 
             return result.OrderBy(m => m.CommonName, StringComparer.OrdinalIgnoreCase).ToList();
@@ -213,7 +216,7 @@ namespace GM4ManagerWPF.Classes
                 // Step 2: For each group-DN, search for groups where managedBy = group-DN
                 // Build an OR filter for all managerDns
                 string combinedFilter = $"(|{string.Join("", userGroupDns.Select(dn => $"(managedBy={EscapeLdapFilterValue(dn)})"))})";
-
+                Debug.WriteLine($"Combined LDAP Filter: {combinedFilter}");
                 using DirectorySearcher managerSearcher = new(rootDse);
                 managerSearcher.PropertiesToLoad.Clear();
                 managerSearcher.Filter = $"(&(objectCategory=group){combinedFilter})";
@@ -221,14 +224,16 @@ namespace GM4ManagerWPF.Classes
                 managerSearcher.PropertiesToLoad.Add("cn");
                 managerSearcher.PropertiesToLoad.Add("distinguishedname");
                 managerSearcher.PropertiesToLoad.Add("description");
-                managerSearcher.PropertiesToLoad.Add("member");
+                //managerSearcher.PropertiesToLoad.Add("member");
 
                 var searcherResult = managerSearcher.FindAll();
                 Debug.WriteLine($"Number of managed groups found: {searcherResult.Count}");
-                foreach (SearchResult result in searcherResult)
+                foreach (SearchResult sr in searcherResult)
                 {
-                    DirectoryEntry groupEntry = result.GetDirectoryEntry();
-                    string groupDn = groupEntry.Properties["distinguishedname"].Value?.ToString() ?? "";
+                    //DirectoryEntry groupEntry = result.GetDirectoryEntry();
+                    
+                    //string groupDn = groupEntry.Properties["distinguishedname"]?.ToString() ?? "";
+                    string? groupDn = sr.Properties["distinguishedName"]?.Count > 0 ? sr.Properties["distinguishedName"][0]?.ToString() ?? string.Empty : string.Empty;
 
                     // Avoid duplicates
                     if (addedDns.Contains(groupDn))
@@ -236,19 +241,13 @@ namespace GM4ManagerWPF.Classes
                         Debug.WriteLine($"Skipping already added group: {groupDn}");
                         continue;
                     }
-
-                    var memberDns = groupEntry.Properties["member"]
-                        .Cast<string>()
-                        .ToList();
-                    Debug.WriteLine($"Group {groupEntry.Properties["cn"].Value} has {memberDns.Count} members.");
-                    var members = GetObjectClassesForMembers(memberDns);
-
+                    
                     LvGroupsClass group = new()
                     {
-                        Cn = groupEntry.Properties["cn"].Value?.ToString() ?? "",
+                        Cn = sr.Properties["cn"]?.Count > 0 ? sr.Properties["cn"][0]?.ToString() ?? string.Empty : string.Empty,
                         DistinguishedName = groupDn,
-                        Description = groupEntry.Properties["description"].Value?.ToString() ?? "",
-                        Members = members
+                        Description = sr.Properties["description"]?.Count > 0 ? sr.Properties["description"][0]?.ToString() : string.Empty,
+                        Members = []
                     };
 
                     Debug.WriteLine($"Adding group: {group.Cn} ({group.DistinguishedName})");
@@ -608,7 +607,7 @@ namespace GM4ManagerWPF.Classes
             searcher.PropertiesToLoad.Add("cn");
             searcher.PropertiesToLoad.Add("sAMAccountName");
             searcher.PropertiesToLoad.Add("displayName");
-            searcher.PropertiesToLoad.Add("objecTClass");            
+            searcher.PropertiesToLoad.Add("objectClass");            
 
             SearchResultCollection searchResults = searcher.FindAll();
 
@@ -617,7 +616,7 @@ namespace GM4ManagerWPF.Classes
                 Debug.WriteLine($"Search result path: {result.Path}");
 
                 if (result != null && result.Properties.Contains("distinguishedName") && result.Properties["distinguishedName"].Count > 0)
-                {
+                {                    
                     Debug.WriteLine(result.Properties["distinguishedName"][0].ToString());
                     var ldapResult = new LdapSearchResult
                     {
@@ -685,7 +684,74 @@ namespace GM4ManagerWPF.Classes
             }
 
             return groups;
-        }        
+        }
+
+        public static async Task<List<string>> GetUserGroupsForCurrentUserAsync(Action<string>? reportStatus = null)
+        {
+            return await Task.Run(() =>
+            {
+                var sw = Stopwatch.StartNew();
+                var identity = WindowsIdentity.GetCurrent();
+                if (identity == null || identity.Groups == null)
+                {
+                    return new List<string>();
+                }
+
+                var sidList = identity.Groups.Select(g => g.Value).ToList();
+                reportStatus?.Invoke($"Lade {sidList.Count} Gruppen-SIDs...");
+
+                // LDAP-Filter bauen
+                string filter = "(|" + string.Join("", sidList.Select(sid => $"(objectSid={BuildOctetString(sid)})")) + ")";
+
+                var groupNames = new List<string>();
+                try
+                {
+                    string domain = GetCurrentDomain();
+                    using var entry = new DirectoryEntry("LDAP://" + domain);
+                    //string domainPath = "LDAP://" + entry.Properties["defaultNamingContext"].Value;
+                    //using var searchRoot = new DirectoryEntry(entry);
+                    using var searcher = new DirectorySearcher(entry, filter);
+                    searcher.PageSize = 1000; // Set page size for large result sets
+                    searcher.PropertiesToLoad.Add("name");
+                    var results = searcher.FindAll();
+                    foreach (SearchResult result in results)
+                    {
+                        if (result.Properties["name"].Count > 0)
+                        {
+                            var name = result.Properties["name"][0].ToString();
+                            groupNames.Add(name!);
+                            reportStatus?.Invoke(Resources.loadGroup.Replace("{name}", name));
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"Fehler beim Laden der Gruppen: {ex.Message}");
+                    reportStatus?.Invoke($"Fehler beim Laden der Gruppen: {ex.Message}");
+                }
+
+                sw.Stop();
+                Debug.WriteLine($"Gruppenauflösung dauerte: {sw.ElapsedMilliseconds} ms");
+                return groupNames;
+            });
+        }       
+
+        // Hilfsfunktion: SID in LDAP-kompatibles Octet-String-Format umwandeln
+        private static string BuildOctetString(string sid)
+        {
+            // Create a SecurityIdentifier object from the SID string
+            var securityIdentifier = new SecurityIdentifier(sid);
+
+            // Allocate a byte array to hold the binary form of the SID
+            byte[] sidBytes = new byte[securityIdentifier.BinaryLength];
+
+            // Populate the byte array with the binary form of the SID
+            securityIdentifier.GetBinaryForm(sidBytes, 0);
+
+            // Convert the byte array to an LDAP-compatible octet string
+            return "\\" + BitConverter.ToString(sidBytes).Replace("-", "\\");
+        }
+
 
         public static string EscapeLdapFilterValue(string value)
         {

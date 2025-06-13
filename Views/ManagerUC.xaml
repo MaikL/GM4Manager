@@ -60,10 +60,10 @@
         <Button x:Name="BtnAddMember" Grid.Column="2" Content="{Binding Res[btnAddMember]}" 
                 Style="{DynamicResource AccentButtonStyle}"
     			HorizontalAlignment="Left" Grid.Row="1" VerticalAlignment="Top" Margin="0,5,0,0"
-    			Command="{Binding AddMemberCommand}" />
+    			Command="{Binding AddSelectedMemberCommand}" />
         <Button x:Name="BtnRemoveMember" Grid.Column="3" Content="{Binding Res[btnRemoveMember]}"
                 Style="{DynamicResource AccentButtonStyle}"
     			HorizontalAlignment="Right" Grid.Row="1" VerticalAlignment="Top" Margin="0,5,5,0"
-    			Command="{Binding RemoveMemberCommand}" />                   
+    			Command="{Binding RemoveSelectedMemberCommand}" />                   
     </Grid>
 </UserControl>

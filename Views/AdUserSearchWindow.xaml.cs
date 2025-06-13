@@ -15,11 +15,11 @@ namespace GM4ManagerWPF.Views
         public string? SelectedUserDn { get; private set; }
         public string? SamAccountName { get; private set; }
         public LdapSearchResult SearchResult { get; set; } = new LdapSearchResult();
-        public AdUserSearchWindow()
+        public AdUserSearchWindow(bool enableAdminOption)
         {
             InitializeComponent();
             SearchBox.KeyDown += SearchBox_KeyDown;
-            this.DataContext = new AdUserSearchWindowViewModel();
+            this.DataContext = new AdUserSearchWindowViewModel(enableAdminOption);
         }
 
         private void OnSelectClick(object sender, RoutedEventArgs e)

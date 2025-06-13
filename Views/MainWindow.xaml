@@ -7,9 +7,10 @@
         mc:Ignorable="av" 
         x:Class="GM4ManagerWPF.MainWindow"
         xmlns:uc="clr-namespace:GM4ManagerWPF"
-        Title="GM4Manager - Group Manager for Manager" Height="800" Width="1200"
+        Title="{Binding Title}" Height="800" Width="1200"
         Icon="pack://application:,,,/Ressources/GM4ManagerIcon.ico"
-        xmlns:ui="http://schemas.modernwpf.com/2019" 
+        xmlns:ui="http://schemas.modernwpf.com/2019"
+        xmlns:conv="clr-namespace:GM4ManagerWPF.Converters"
         xmlns:viewmodels="clr-namespace:GM4ManagerWPF.ViewModels"    
         ui:ThemeManager.IsThemeAware="True"
         ui:WindowHelper.UseModernWindowStyle="True"
@@ -17,6 +18,9 @@
     <Window.Style>
         <Style TargetType="Window" BasedOn="{StaticResource {x:Type Window}}"/>
     </Window.Style>
+    <Window.Resources>
+        <conv:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+    </Window.Resources>
     <Window.WindowStartupLocation>CenterScreen</Window.WindowStartupLocation>
     <DockPanel>
         <Menu DockPanel.Dock="Top">
@@ -33,20 +37,26 @@
                 <MenuItem Header="{Binding Res[menuDark]}" Click="SetThemeDark"/>
                 <MenuItem Header="{Binding Res[menuLight]}" Click="SetThemeLight"/>
             </MenuItem>
+            <MenuItem Header="{Binding Res[menuHelp]}">   
+                <MenuItem Header="{Binding Res[menuHelpLink]}" Command="{Binding OpenHelpCommand}" />    
+            </MenuItem>    
+            <MenuItem Header="{Binding LatestVersionText}"
+                        Visibility="{Binding IsUpdateAvailable, Converter={StaticResource BoolToVisibilityConverter}}"
+                        Foreground="OrangeRed"
+                        FontWeight="Bold"
+                        Command="{Binding OpenUpdatePageCommand}" />
             <MenuItem Header="{Binding ManagerName}" HorizontalAlignment="Right" FlowDirection="RightToLeft">
             </MenuItem>
         </Menu>
         <TabControl x:Name="MainTabControl"
             SelectedIndex="{Binding SelectedTabIndex, Mode=TwoWay}">
-            <TabItem x:Name="Manager" Header="{Binding Res[tabManager]}">
+            <TabItem x:Name="ManagerUC" Header="{Binding Res[tabManager]}">
                 <Grid>
-                    <views:ManagerUC DataContext="{Binding Manager}" />
+                    <views:ManagerUC DataContext="{Binding ManagerUC}" />
                 </Grid>
             </TabItem>
-            <TabItem x:Name="Explorer" Header="{Binding Res[tabExplorer]}">
-                <Grid>
-                    <views:ExplorerUC DataContext="{Binding Explorer}" />
-                </Grid>
+            <TabItem Header="{Binding Res[tabExplorer]}">
+                <Grid x:Name="ExplorerContentHost" />
             </TabItem>
         </TabControl>
     </DockPanel>

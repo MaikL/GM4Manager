@@ -1,173 +1,304 @@
-﻿using GM4ManagerWPF.Classes;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using GM4ManagerWPF.Classes;
 using GM4ManagerWPF.Helpers;
+using GM4ManagerWPF.Interfaces;
 using GM4ManagerWPF.Localization;
 using GM4ManagerWPF.Models;
 using GM4ManagerWPF.Properties;
 using GM4ManagerWPF.Views;
 using Ookii.Dialogs.Wpf;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
-using System.Runtime.CompilerServices;
 using System.Security.AccessControl;
 using System.Security.Principal;
 using System.Windows;
-//using System.Windows.Forms;
-using System.Windows.Input;
 
 namespace GM4ManagerWPF.ViewModels
 {
-    public class ExplorerUCViewModel : INotifyPropertyChanged
+    public partial class ExplorerUCViewModel : ObservableObject
     {
-        public string SelectedPath
-        {
-            get => _selectedPath;
-            set { _selectedPath = value; OnPropertyChanged(); }
-        }
-
-        public ObservableCollection<PermissionInfo> CurrentPermissions
-        {
-            get => _currentPermissions;
-            set
-            {
-                _currentPermissions = value;
-                OnPropertyChanged();
-            }
-        }
-        public ICommand AddMemberCommand { get; }
-        public ICommand RemoveMemberCommand { get; }
-        public string NewFolderName
-        {
-            get => _newFolderName;
-            set
-            {
-                _newFolderName = value;
-                OnPropertyChanged();
-                OnPropertyChanged(nameof(CanCreateFolder));
-            }
-        }
-
-        private bool _disableInheritance;
-        public bool DisableInheritance
-        {
-            get => _disableInheritance;
-            set => SetProperty(ref _disableInheritance, value);
-        }
-
-        private DirectoryNodeViewModel? _selectedNode;
-        public DirectoryNodeViewModel? SelectedNode
-        {
-            get => _selectedNode;
-            set
-            {
-                if (_selectedNode != value)
-                {
-                    _selectedNode = value;
-                    OnPropertyChanged();
-                    _ = LoadPermissionsForSelectedNodeAsync(); // fire & forget
-                    ((RelayCommand)AddMemberCommand).RaiseCanExecuteChanged();
-                    ((RelayCommand)RemoveMemberCommand).RaiseCanExecuteChanged();
-                }
-            }
-        }
-
-        private CancellationTokenSource? _cts;
-
-        public string? SelectedFolderPath { get; set; }
-        private string? _headerMember;
-        public string HeaderMember
-        {
-            get => _headerMember ?? string.Empty;
-            set
-            {
-                _headerMember = value;
-                OnPropertyChanged();
-            }
-        }
-        private string? _headerModify;
-
-        public string HeaderModify
-        {
-            get => _headerModify ?? string.Empty;
-            set
-            {
-                _headerModify = value;
-                OnPropertyChanged();
-            }
-        }
-        private string? _headerReadAndExecute;
-        public string HeaderReadAndExecute
-        {
-            get => _headerReadAndExecute ?? string.Empty; // Ensure a non-null value is returned
-            set
-            {
-                _headerReadAndExecute = value;
-                OnPropertyChanged();
-            }
-        }
-
-        private bool _isLoadingPermissions;
-        public bool IsLoadingPermissions
-        {
-            get => _isLoadingPermissions;
-            set
-            {
-                _isLoadingPermissions = value;
-                OnPropertyChanged();
-            }
-        }
-
-        public event PropertyChangedEventHandler? PropertyChanged;
-
         public static ResourceService Res => ResourceService.Instance;
-        public ObservableCollection<DirectoryNodeViewModel> RootItems { get; } = [];
 
-        private string _selectedPath = string.Empty;
-        private ObservableCollection<PermissionInfo> _currentPermissions = [];
-        private string _newFolderName = string.Empty;
+        [ObservableProperty]
+        [NotifyCanExecuteChangedFor(nameof(DisableInheritanceCommand))]
+        [NotifyCanExecuteChangedFor(nameof(EnableInheritanceRecursivlyCommand))]
+        private bool isInheritedFromParent;
+
+        [ObservableProperty]
+        [NotifyCanExecuteChangedFor(nameof(AddSelectedMemberCommand))]
+        [NotifyCanExecuteChangedFor(nameof(RemoveSelectedMemberCommand))]
+        [NotifyCanExecuteChangedFor(nameof(DisableInheritanceCommand))]
+        [NotifyCanExecuteChangedFor(nameof(EnableInheritanceRecursivlyCommand))]
+        private bool canEditPermissions;
+
+        [ObservableProperty]
+        private string selectedPath;
+
+        [ObservableProperty]
+        private bool disableInheritanceForNewFolder;
+
+        public ObservableCollection<PermissionInfo> CurrentPermissions { get; } = [];
+
+        [ObservableProperty]
+        public string? selectedFolderPath;
+
+        [ObservableProperty]
+        private string? headerMember;
+        [ObservableProperty]
+        private string? headerModify;
+        [ObservableProperty]
+        private string? headerReadAndExecute;
+        [ObservableProperty]
+        private bool isLoadingPermissions;        
+
+        [ObservableProperty]
+        private string? newFolderName;
+        partial void OnNewFolderNameChanged(string? value)
+        {
+            OnPropertyChanged(nameof(CanCreateFolder));
+        }
+
+        [ObservableProperty]
+        [NotifyCanExecuteChangedFor(nameof(AddSelectedMemberCommand))]
+        [NotifyCanExecuteChangedFor(nameof(RemoveSelectedMemberCommand))]
+        [NotifyCanExecuteChangedFor(nameof(DisableInheritanceCommand))]
+        [NotifyCanExecuteChangedFor(nameof(EnableInheritanceRecursivlyCommand))]
+        private DirectoryNodeViewModel? selectedNode;
+
+        private readonly ICursorService _cursorService;
+        public ExplorerUCViewModel(ICursorService cursorService)
+        {            
+            _cursorService = cursorService ?? throw new ArgumentNullException(nameof(cursorService));
+            selectedPath = AppSettingsManager.Settings.StartShare;
+            UpdateLocalizedHeaders();
+
+            Task.Run(() => LoadRootDirectoriesAsync());
+
+            ResourceService.Instance.PropertyChanged += (_, __) => UpdateLocalizedHeaders();
+
+            Debug.WriteLine($"ExplorerUCViewModel {selectedPath}");           
+        }
+
+        private bool CanDisableInheritance() => IsInheritedFromParent && CanEditPermissions;
+        private bool CanEnableInheritance() => !IsInheritedFromParent && CanEditPermissions;
+        partial void OnSelectedNodeChanged(DirectoryNodeViewModel? value)
+        {
+            if (value == null || value.FullPath == SelectedFolderPath || !Directory.Exists(value.FullPath))
+            {
+                return;
+            }
+
+            Debug.WriteLine($"SelectedNode changed: {value.FullPath}");
+            LoadPermissions(value.FullPath); 
+            CanEditPermissions = UserCanEditPermissions(value.FullPath);
+        }
+        
+        [RelayCommand(CanExecute = nameof(CanDisableInheritance))]
+        private void DisableInheritance()
+        {
+            if (SelectedNode == null || string.IsNullOrWhiteSpace(SelectedNode.FullPath) || !CanEditPermissions)
+            {
+                return;
+            }
+
+            var progressDialog = new ProgressDialogViewModel(Resources.txtDisableInheritance);
+            var progressWindow = new ProgressDialogWindow { DataContext = progressDialog };
+
+            _cursorService.SetBusyCursor();
+
+            try
+            {
+                ApplyExplicitPermissionsOnlyToRoot(SelectedNode.FullPath, progressDialog);
+                IsInheritedFromParent = false;
+                CanEditPermissions = !CanEditPermissions;
+                CanEditPermissions = UserCanEditPermissions(SelectedNode.FullPath);
+
+                LoadPermissions(SelectedNode.FullPath);                
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($": {ex.Message}", "Fehler", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            finally
+            {
+                _cursorService.ResetCursor();
+            }
+        }
+
+        private void ApplyExplicitPermissionsOnlyToRoot(string path, ProgressDialogViewModel progress)
+        {
+            try
+            {
+                progress.CurrentPath = path;
+                progress.ReportProgress(1, 1);
+
+                var dirInfo = new DirectoryInfo(path);
+                var security = dirInfo.GetAccessControl();
+
+                // Disable inheritance and copy existing rules
+                security.SetAccessRuleProtection(true, true);
+                dirInfo.SetAccessControl(security);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error setting permissions on {path}: {ex.Message}");
+            }
+        }
+
+        [RelayCommand(CanExecute = nameof(CanEnableInheritance))]
+        private async Task EnableInheritanceRecursivly()
+        {
+            if (SelectedNode == null || string.IsNullOrWhiteSpace(SelectedNode.FullPath))
+            {
+                return;
+            }
+
+            var progressDialog = new ProgressDialogViewModel(Resources.btnEnableInheritance);
+            var progressWindow = new ProgressDialogWindow { DataContext = progressDialog };
+            progressWindow.Show();
+            _cursorService.SetBusyCursor();
+
+            try
+            {
+                await Task.Run(() =>
+                {
+                    EnableInheritanceRecurse(SelectedNode.FullPath, progressDialog);
+                });
+
+                IsInheritedFromParent = true;
+                LoadPermissions(SelectedNode.FullPath);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error enabling inheritance: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            finally
+            {
+                _cursorService.ResetCursor();
+                progressWindow.Close();
+                CanEditPermissions = !CanEditPermissions;
+                CanEditPermissions = UserCanEditPermissions(SelectedNode.FullPath);
+            }
+        }
+
+        private void EnableInheritanceRecurse(string path, ProgressDialogViewModel progress)
+        {
+            var dirs = Directory.GetDirectories(path, "*", SearchOption.AllDirectories);
+            var files = Directory.GetFiles(path, "*", SearchOption.AllDirectories);
+
+            var allPaths = dirs.Concat(files).Prepend(path).ToList();
+            int total = allPaths.Count;
+            int current = 0;
+
+            /**
+                // TODO: perhaps offer to remove explicit rules => time consuming
+                var rules = security.GetAccessRules(true, false, typeof(NTAccount));
+                foreach (FileSystemAccessRule rule in rules)
+                {
+                    security.RemoveAccessRule(rule);
+                }
+             */
+
+            foreach (var item in allPaths)
+            {
+                try
+                {
+                    FileSystemSecurity security;
+
+                    if (Directory.Exists(item))
+                    {
+                        var dirInfo = new DirectoryInfo(item);
+                        security = dirInfo.GetAccessControl();
+                        security.SetAccessRuleProtection(false, false); // enable inheritance, remove explicit
+                        dirInfo.SetAccessControl((DirectorySecurity)security);
+                    }
+                    else if (File.Exists(item))
+                    {
+                        var fileInfo = new FileInfo(item);
+                        security = fileInfo.GetAccessControl();
+                        security.SetAccessRuleProtection(false, false); // enable inheritance, remove explicit
+                        fileInfo.SetAccessControl((FileSecurity)security);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"Error enabling inheritance on {item}: {ex.Message}");
+                }
+
+                current++;
+                if (current % 5 == 0)
+                {
+                    progress.CurrentPath = item;
+                }
+
+                progress.CurrentPath = item;
+                progress.ReportProgress(current, total);
+            }
+            CanEditPermissions = UserCanEditPermissions(path);
+        }
+
+        public ObservableCollection<DirectoryNodeViewModel> RootItems { get; } = [];
+                       
         public bool CanCreateFolder =>
             !string.IsNullOrWhiteSpace(NewFolderName) && SelectedPath != null;
 
         public List<string> CurrentUserGroups { get; private set; } = [];
 
-        public ICommand CreateNewFolderCommand => new RelayCommand(CreateNewFolder, () => CanCreateFolder);
-
-        public ICommand OpenFolderDialogCommand { get; }
-
-        public ICommand ShowGroupMembersCommand => new RelayCommand(ShowGroupMembers, () => CanShowMembers);
-                
         public bool CanShowMembers => SelectedPermission != null;
 
+        [RelayCommand]
         public void ShowGroupMembers()
         {
-            if (SelectedPermission == null || string.IsNullOrWhiteSpace(SelectedFolderPath))
+            try
             {
-                MessageBox.Show(Resources.msgSelectPermissionFirst, Resources.msgHeaderError, MessageBoxButton.OK, MessageBoxImage.Error);
-                return;
-            }
-            Debug.WriteLine($"ShowGroupMembers called for: {SelectedPermission.IdentityReference}");
-            var showGroupMembersView = new ShowGroupMembers
-            {                
-                DataContext = new ShowGroupMembersViewModel(SelectedPermission)
-            };
-            
-            bool? result = showGroupMembersView.ShowDialog();
-        }
+                _cursorService.SetBusyCursor();
 
+                if (SelectedPermission == null || string.IsNullOrWhiteSpace(SelectedFolderPath))
+                {
+                    MessageBox.Show(Resources.msgSelectPermissionFirst, Resources.msgHeaderError, MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+                Debug.WriteLine($"ShowGroupMembers called for: {SelectedPermission.IdentityReference}");
+                var showGroupMembersView = new ShowGroupMembers
+                {
+                    DataContext = new ShowGroupMembersViewModel(SelectedPermission)
+                };
+
+                bool? result = showGroupMembersView.ShowDialog();
+            }
+            finally
+            {
+                _cursorService.ResetCursor();
+            }
+        }
 
         /// <summary>
         /// Initializes the ViewModel by loading the current user's group memberships.
         /// </summary>
         public async Task InitializeAsync(Action<string>? reportStatus = null)
         {
-            reportStatus?.Invoke(Resources.loadingPermissions);
-            CurrentUserGroups = await GroupHelper.GetUserGroupsForCurrentUserAsync(reportStatus);
+            try
+            {
+                _cursorService.SetBusyCursor();
+                reportStatus?.Invoke(Resources.loadingPermissions);
+                CurrentUserGroups = await ActiveDirectoryService.GetUserGroupsForCurrentUserAsync(reportStatus);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("Failed to initialize ExplorerUCViewModel: " + ex.Message);
+            }
+            finally
+            {
+                _cursorService.ResetCursor();
+            }
+
         }
         /// <summary>
         /// Loads NTFS permissions for a given folder path and updates the UI.
-        /// </summary>
-        public async Task LoadPermissionsAsync(string folderPath, Action<string>? reportStatus = null)
+        /// </summary>        
+        public void LoadPermissions(string folderPath, Action<string>? reportStatus = null)
         {
             SelectedFolderPath = folderPath;
             IsLoadingPermissions = true;
@@ -175,83 +306,77 @@ namespace GM4ManagerWPF.ViewModels
 
             try
             {
+                _cursorService.SetBusyCursor();
+
                 // make sure, that CurrentUserGroups is loaded
                 if (CurrentUserGroups == null || CurrentUserGroups.Count == 0)
                 {
                     reportStatus?.Invoke(Resources.loadingPermissions);
-                    CurrentUserGroups = await GroupHelper.GetUserGroupsForCurrentUserAsync(reportStatus);
+                    CurrentUserGroups = ActiveDirectoryService.GetUserGroupsForCurrentUserAsync(reportStatus).Result;
                 }
 
-                var result = await Task.Run(() =>
-                {
-                    var dirInfo = new DirectoryInfo(folderPath);
-                    DirectorySecurity acl = dirInfo.GetAccessControl();
-                    bool isProtected = acl.AreAccessRulesProtected;
-                    IsInheritedFromParent = !isProtected; // true if inherited
-                    var accessRules = acl.GetAccessRules(true, true, typeof(NTAccount));
+                var dirInfo = new DirectoryInfo(folderPath);
+                DirectorySecurity acl = dirInfo.GetAccessControl();
+                bool isProtected = acl.AreAccessRulesProtected;
 
-                    var list = new List<PermissionInfo>();
-                    foreach (FileSystemAccessRule rule in accessRules)
+                IsInheritedFromParent = !IsInheritedFromParent; // flip
+                IsInheritedFromParent = !isProtected;           // set actual value
+
+                var accessRules = acl.GetAccessRules(true, true, typeof(NTAccount));
+                var list = new List<PermissionInfo>();
+
+                foreach (FileSystemAccessRule rule in accessRules)
+                {
+                    string identity = rule.IdentityReference.Value;
+                    Debug.WriteLine($"Processing identity in LoadPermissions: {identity}");
+
+                    if (identity.StartsWith(currentDomain + "\\", StringComparison.OrdinalIgnoreCase))
                     {
-                        string identity = rule.IdentityReference.Value;
-                        Debug.WriteLine($"Processing identity in LoadPermissionsAsync: {identity}");
-                        if (identity.StartsWith(currentDomain + "\\", StringComparison.OrdinalIgnoreCase))
+                        string displayName = identity.Split('\\').Last();
+                        list.Add(new PermissionInfo
                         {
-                            string DisplayName = identity.Split('\\').Last();
-                            list.Add(new PermissionInfo
-                            {
-                                IdentityReference = DisplayName,
-                                CanModify = rule.FileSystemRights.HasFlag(FileSystemRights.Modify),
-                                CanReadExecute = rule.FileSystemRights.HasFlag(FileSystemRights.ReadAndExecute),
-                                Rights = rule.FileSystemRights,
-                            });
-                        }
+                            IdentityReference = displayName,
+                            CanModify = rule.FileSystemRights.HasFlag(FileSystemRights.Modify),
+                            CanReadExecute = rule.FileSystemRights.HasFlag(FileSystemRights.ReadAndExecute),
+                            Rights = rule.FileSystemRights,
+                        });
                     }
-                    return list;
-                });
+                }
 
                 CurrentPermissions.Clear();
-                foreach (var item in result)
+                foreach (var item in list)
                 {
                     CurrentPermissions.Add(item);
                 }
-
             }
             catch (Exception ex)
             {
                 Debug.WriteLine("Failed to load permissions: " + ex.Message);
                 string message = Resources.msgFailedToLoadPermissions.Replace("{message}", ex.Message);
                 MessageBox.Show(message, Resources.msgHeaderError, MessageBoxButton.OK, MessageBoxImage.Error);
-                CurrentPermissions = [];
+
+                var emptyItem = new PermissionInfo
+                {
+                    IdentityReference = Resources.msgFailedToLoadPermissions,
+                    CanModify = false,
+                    CanReadExecute = false,
+                    Rights = FileSystemRights.Read
+                };
+                CurrentPermissions.Add(emptyItem);
             }
             finally
             {
                 IsLoadingPermissions = false;
+                _cursorService.ResetCursor();
             }
-        }
-
-        public ExplorerUCViewModel()
-        {
-            SelectedPath = AppSettingsManager.Settings.StartShare;
-            UpdateLocalizedHeaders();
-
-            OpenFolderDialogCommand = new RelayCommand(OpenFolderDialog);
-
-            Task.Run(() => LoadRootDirectoriesAsync());
-
-            ResourceService.Instance.PropertyChanged += (_, __) => UpdateLocalizedHeaders();
-
-            Debug.WriteLine($"ExplorerUCViewModel {SelectedPath}");
-            AddMemberCommand = new RelayCommand(AddSelectedMember, CanAddMember);
-            RemoveMemberCommand = new RelayCommand(RemoveSelectedMember, CanRemoveMember);
-            DisableInheritance = true;
         }
 
         /// <summary>
         /// Opens a folder browser dialog and sets the selected path.
         /// Also triggers loading of root directories.
         /// </summary>
-        private void OpenFolderDialog(object? obj)
+        [RelayCommand]
+        private void OpenFolderDialog()
         {
             var dialog = new VistaFolderBrowserDialog
             {
@@ -273,33 +398,10 @@ namespace GM4ManagerWPF.ViewModels
                 RootItems.Clear();
 
                 Task.Run(() => LoadRootDirectoriesAsync());
-
-            }
-        }
-        /// <summary>
-        /// Loads NTFS permissions for the currently selected directory node.
-        /// Uses debouncing to avoid excessive calls.
-        /// </summary>
-        private async Task LoadPermissionsForSelectedNodeAsync()
-        {
-            _cts?.Cancel();
-            _cts = new CancellationTokenSource();
-            var token = _cts.Token;
-
-            try
-            {
-                await Task.Delay(150, token); // debounce
-                if (SelectedNode != null && Directory.Exists(SelectedNode.FullPath))
-                {
-                    await LoadPermissionsAsync(SelectedNode.FullPath);
-                }
-            }
-            catch (TaskCanceledException)
-            {
-                // Ignored
             }
         }
 
+        [RelayCommand(CanExecute = nameof(CanRemoveMember))]
         private void RemoveSelectedMember(object? parameter)
         {
             if (SelectedPermission == null || string.IsNullOrWhiteSpace(SelectedFolderPath))
@@ -311,21 +413,9 @@ namespace GM4ManagerWPF.ViewModels
             CurrentPermissions.Remove(SelectedPermission);
         }
 
-
-        private PermissionInfo? _selectedPermission;
-
-        public PermissionInfo? SelectedPermission
-        {
-            get => _selectedPermission;
-            set
-            {
-                _selectedPermission = value;
-                OnPropertyChanged();
-                Debug.WriteLine($"SelectedPermission changed: {_selectedPermission?.IdentityReference}");
-                ((RelayCommand)AddMemberCommand).RaiseCanExecuteChanged();
-                ((RelayCommand)RemoveMemberCommand).RaiseCanExecuteChanged();
-            }
-        }
+        [ObservableProperty]
+        [NotifyCanExecuteChangedFor(nameof(RemoveSelectedMemberCommand))]
+        private PermissionInfo? selectedPermission;
 
         /// <summary>
         /// Loads the root directory node and adds it to the UI tree.
@@ -364,6 +454,7 @@ namespace GM4ManagerWPF.ViewModels
         /// Creates a new folder in the selected path.
         /// Optionally disables inheritance of NTFS permissions.
         /// </summary>
+        [RelayCommand]
         private void CreateNewFolder()
         {
             try
@@ -376,7 +467,7 @@ namespace GM4ManagerWPF.ViewModels
 
                 string fullPath = SelectedNode.FullPath;
                 string parentPath = fullPath;
-                string newPath = Path.Combine(parentPath, NewFolderName);
+                string newPath = Path.Combine(parentPath, NewFolderName ?? string.Empty);
                 Debug.WriteLine($"Creating new folder at: {newPath}");
 
                 if (Directory.Exists(newPath))
@@ -387,7 +478,7 @@ namespace GM4ManagerWPF.ViewModels
 
                 Directory.CreateDirectory(newPath);
 
-                if (DisableInheritance)
+                if (DisableInheritanceForNewFolder)
                 {
                     var dirInfo = new DirectoryInfo(newPath);
                     var security = dirInfo.GetAccessControl();
@@ -410,16 +501,17 @@ namespace GM4ManagerWPF.ViewModels
             }
             catch (Exception ex)
             {
-                MessageBox.Show($" {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                string message = Resources.msgErrorAtCreatingNewFolder.Replace("{message}", ex.Message);
+                MessageBox.Show($"{message} {ex.Message}", Resources.msgHeaderError, MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
-
 
         /// <summary>
         /// Opens a separate Window to search for and add a member to the selected group.
         /// </summary>
         /// <param name="parameter"></param>
-        private void AddSelectedMember(object? parameter)
+        [RelayCommand(CanExecute = nameof(CanAddSelectedMember))]
+        private void AddSelectedMember()
         {
             if (SelectedNode == null)
             {
@@ -428,7 +520,7 @@ namespace GM4ManagerWPF.ViewModels
             }
 
             // Open the Active Directory user search window
-            var adSearchWindow = new AdUserSearchWindow();
+            var adSearchWindow = new AdUserSearchWindow(false);
             bool? result = adSearchWindow.ShowDialog();
 
             if (result == true && !string.IsNullOrWhiteSpace(adSearchWindow.SelectedUserDn))
@@ -437,10 +529,18 @@ namespace GM4ManagerWPF.ViewModels
 
                 if (CurrentPermissions.Count == 0)
                 {
-                    CurrentPermissions = [];
+                    // Initialize CurrentPermissions if it's null or empty
+                    var tempPermission = new PermissionInfo
+                    {
+                        IdentityReference = string.Empty,
+                        CanModify = false,
+                        CanReadExecute = false,
+                        Rights = FileSystemRights.Read
+                    };
+                    CurrentPermissions.Add(tempPermission);
                 }
                 // Check if the user is already in the group
-                bool alreadyInGroup = CurrentPermissions.Any(m => m?.IdentityReference.Equals(samAccountName, StringComparison.OrdinalIgnoreCase) == true);
+                bool alreadyInGroup = CurrentPermissions?.Any(m => m?.IdentityReference.Equals(samAccountName, StringComparison.OrdinalIgnoreCase) == true) == true;
                 Debug.WriteLine($"Adding user: {samAccountName} to group: {SelectedNode.FullPath}, already in group: {alreadyInGroup}");
                 if (!alreadyInGroup)
                 {
@@ -457,7 +557,7 @@ namespace GM4ManagerWPF.ViewModels
                             CanReadExecute = rights.HasFlag(FileSystemRights.ReadAndExecute),
                             Rights = rights
                         };
-                        CurrentPermissions.Add(newPermission);
+                        CurrentPermissions?.Add(newPermission);
                     }
                     catch (Exception ex)
                     {
@@ -470,47 +570,47 @@ namespace GM4ManagerWPF.ViewModels
                     MessageBox.Show(Resources.msgErrorUserAlreadyInGroup, Resources.msgHeaderSuccess, MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
-        }
+        }        
 
-
-        private bool CanAddMember(object? parameter)
+        private bool UserCanEditPermissions(string path)
         {
-            Debug.WriteLine($"CanAddMember: SelectedNode: {SelectedNode?.FullPath}");
-            return SelectedNode != null;
-        }
-
-        private bool CanRemoveMember(object? parameter)
-        {
-            Debug.WriteLine($"CanRemoveMember: SelectedNode: {SelectedNode?.FullPath}");
-            return SelectedNode != null && SelectedPermission != null;
-        }
-
-        private bool _isInheritedFromParent;
-
-        public bool IsInheritedFromParent
-        {
-            get => _isInheritedFromParent;
-            set
+            try
             {
-                _isInheritedFromParent = value;
-                OnPropertyChanged();
+                var dirInfo = new DirectoryInfo(path);
+                var acl = dirInfo.GetAccessControl();
+                var rules = acl.GetAccessRules(true, true, typeof(NTAccount));
+
+                WindowsIdentity identity = WindowsIdentity.GetCurrent();
+                WindowsPrincipal principal = new(identity);
+
+                foreach (FileSystemAccessRule rule in rules)
+                {
+                    if (principal.IsInRole(rule.IdentityReference.Value) &&
+                        rule.AccessControlType == AccessControlType.Allow &&
+                        rule.FileSystemRights.HasFlag(FileSystemRights.ChangePermissions))
+                    {
+                        return true;
+                    }
+                }
             }
-        }
-
-
-        protected void OnPropertyChanged([CallerMemberName] string? name = null) =>
-              PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
-
-
-        protected bool SetProperty<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
-        {
-            if (!EqualityComparer<T>.Default.Equals(field, value))
+            catch (Exception ex)
             {
-                field = value!;
-                OnPropertyChanged(propertyName);
-                return true;
+                Debug.WriteLine($"Error checking permission: {ex.Message}");
             }
             return false;
+        }
+
+
+        private bool CanAddSelectedMember()
+        {
+            Debug.WriteLine($"CanAddMember: SelectedNode: {SelectedNode?.FullPath}");
+            return SelectedNode != null && !IsInheritedFromParent && CanEditPermissions;
+        }
+
+        private bool CanRemoveMember()
+        {
+            Debug.WriteLine($"CanRemoveMember: SelectedNode: {SelectedNode?.FullPath}, {SelectedPermission?.IdentityReference} - {CanEditPermissions}");
+            return SelectedNode != null && SelectedPermission != null && CanEditPermissions;
         }
     }
 } // End of namespace

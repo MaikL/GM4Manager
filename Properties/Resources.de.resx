@@ -379,4 +379,37 @@
   <data name="msgSelectPermissionFirst" xml:space="preserve">
     <value>Bitte erst eine Gruppe auswählen</value>
   </data>
+  <data name="btnDeactivateInheritance" xml:space="preserve">
+    <value>Vererbung deaktivieren</value>
+  </data>
+  <data name="windowTitleProgressDialogWindow" xml:space="preserve">
+    <value>Berechtigungsfortschritt</value>
+  </data>
+  <data name="btnEnableInheritance" xml:space="preserve">
+    <value>spezielle Berechtigungen entfernen</value>
+  </data>
+  <data name="msgErrorAtCreatingNewFolder" xml:space="preserve">
+    <value>Fehler beim erstellen eines neuen Ordners:{message}</value>
+  </data>
+  <data name="msgNewVersion" xml:space="preserve">
+    <value>eine neue Version ({latestVersion}) ist verfügbar.</value>
+  </data>
+  <data name="msgUpdateAvailable" xml:space="preserve">
+    <value>Update verfügbar</value>
+  </data>
+  <data name="menuHelp" xml:space="preserve">
+    <value>Hilfe</value>
+  </data>
+  <data name="menuHelpLink" xml:space="preserve">
+    <value>Hilfe</value>
+  </data>
+  <data name="menuUpdateLink" xml:space="preserve">
+    <value>Teste auf neue Version</value>
+  </data>
+  <data name="headerTitle" xml:space="preserve">
+    <value>GM4Manager - Gruppenmanager für Manager (Version {version})</value>
+  </data>
+  <data name="menuVersion" xml:space="preserve">
+    <value>🔔 Update verfügbar: {LatestVersion}</value>
+  </data>
 </root>

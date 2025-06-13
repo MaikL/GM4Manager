@@ -1,103 +1,110 @@
-﻿using GM4ManagerWPF.Classes;
+﻿
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using GM4ManagerWPF.Classes;
+using GM4ManagerWPF.Helpers;
+using GM4ManagerWPF.Interfaces;
 using GM4ManagerWPF.Localization;
 using GM4ManagerWPF.Properties;
-using System.ComponentModel;
+using GM4ManagerWPF.ViewModels;
+using GM4ManagerWPF.Views;
 using System.Diagnostics;
-using System.Runtime.CompilerServices;
+using System.Windows;
 
-namespace GM4ManagerWPF.ViewModels
+public partial class MainWindowViewModel : ObservableRecipient
 {
-    public class MainWindowViewModel : INotifyPropertyChanged
+    private readonly UpdateHelper _updateHelper = new();
+    public static ResourceService Res => ResourceService.Instance;
+
+    [ObservableProperty]
+    private string managerName = string.Empty;
+
+    [ObservableProperty]
+    private string currentVersion = "1.1.0"; 
+
+    [ObservableProperty]
+    private int selectedTabIndex;
+
+    [ObservableProperty]
+    private ManagerUCViewModel managerUC;
+
+    [ObservableProperty]
+    private ExplorerUCViewModel? explorerUC;
+
+    [ObservableProperty]
+    private string title;
+
+    [ObservableProperty]
+    private bool isUpdateAvailable = false;
+
+    [ObservableProperty]
+    private string? latestVersionText;
+
+
+    private readonly ICursorService _cursorService;
+
+    partial void OnSelectedTabIndexChanged(int value)
     {
-        public static ResourceService Res => ResourceService.Instance;
-        public event PropertyChangedEventHandler? PropertyChanged;
+        _ = OnTabChangedAsync(value);
+    }
 
-        private ManagerUCViewModel _manager = null!;
-        public ManagerUCViewModel Manager
+    public MainWindowViewModel(ICursorService cursorService)
+    {
+        title = Resources.headerTitle.Replace("{version}", currentVersion);
+        var sw = Stopwatch.StartNew();
+        IsActive = true;
+        _cursorService = cursorService;
+        _ = CheckForUpdatesAsync();
+
+        managerUC = new ManagerUCViewModel(cursorService);        
+
+        managerName = "👤 " + Resources.headerManager.Replace("{manager}", ActiveDirectoryService.GetCNFromUsername());
+        sw.Stop();
+        Debug.WriteLine($"Main Window View Model took: {sw.ElapsedMilliseconds} ms");
+    }
+
+    [RelayCommand]
+    private void OpenHelp()
+    {
+        var helpUrl = "https://github.com/MaikL/GM4Manager/blob/main/README.md";
+        Process.Start(new ProcessStartInfo
         {
-            get => _manager;
-            private set
+            FileName = helpUrl,
+            UseShellExecute = true
+        });
+    }
+
+    [RelayCommand]
+    private void OpenUpdatePage()
+    {
+        if (!_updateHelper.IsCurrent && !string.IsNullOrEmpty(_updateHelper.LatestVersionUrl))
+        {
+            Process.Start(new ProcessStartInfo
             {
-                _manager = value;
-                OnPropertyChanged();
-            }
+                FileName = _updateHelper.LatestVersionUrl,
+                UseShellExecute = true
+            });
         }
-
-        private ExplorerUCViewModel? _explorer;
-        public ExplorerUCViewModel? Explorer
+    }
+    
+    private async Task OnTabChangedAsync(int index)
+    {
+        if (index == 1 && ExplorerUC == null)
         {
-            get => _explorer;
-            private set
-            {
-                _explorer = value;
-                OnPropertyChanged();
-            }
+            await LoadExplorerAsync();
         }
+    }
 
-        private int _selectedTabIndex;
-        public int SelectedTabIndex
-        {
-            get => _selectedTabIndex;
-            set
-            {
-                if (_selectedTabIndex != value)
-                {
-                    _selectedTabIndex = value;
-                    OnPropertyChanged();
-                    _ = OnTabChangedAsync(value); // async tab handling
-                }
-            }
-        }
+    public async Task CheckForUpdatesAsync()
+    {
+        await _updateHelper.CheckForUpdateAsync(CurrentVersion); 
+        IsUpdateAvailable = !_updateHelper.IsCurrent;
+        LatestVersionText = Resources.menuVersion.Replace("{LatestVersion}", _updateHelper.LatestVersion);
+    }
 
-        private string? _managerName = string.Empty;
-        public string ManagerName
-        {
-            get => _managerName ?? string.Empty;
-            set
-            {
-                _managerName = value;
-                OnPropertyChanged();
-            }
-        }
-
-        public MainWindowViewModel()
-        {
-            var sw = Stopwatch.StartNew();            
-            Debug.WriteLine("MainWindowViewModel constructor called");
-            Manager = new ManagerUCViewModel();
-            _managerName = "👤 " + Resources.headerManager.Replace("{manager}", ActiveDirectoryService.GetCNFromUsername());
-            SelectedTabIndex = 0; // Manager tab by default
-            
-            sw.Stop();
-            Debug.WriteLine($"Main Window View Model took: {sw.ElapsedMilliseconds} ms");
-        }
-
-        public async Task InitializeAsync(Action<string>? reportStatus = null)
-        {           
-            // Only preload Explorer if Explorer tab is selected on startup (not required)
-            if (SelectedTabIndex == 0)
-            {
-                await LoadExplorerAsync(reportStatus);
-            }
-        }
-
-        private async Task OnTabChangedAsync(int index)
-        {
-            if (index == 0 && Explorer == null)
-            {
-                await LoadExplorerAsync();
-            }
-        }
-
-        private async Task LoadExplorerAsync(Action<string>? reportStatus = null)
-        {
-            Explorer = new ExplorerUCViewModel();
-            await Explorer.InitializeAsync(reportStatus);
-        }
-
-        protected void OnPropertyChanged([CallerMemberName] string? name = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
-        }
+    public async Task LoadExplorerAsync(Action<string>? reportStatus = null)
+    {
+        ExplorerUC = new ExplorerUCViewModel(_cursorService);
+        await ExplorerUC.InitializeAsync(reportStatus);
     }
 }

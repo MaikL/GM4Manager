@@ -1,18 +1,20 @@
-﻿<UserControl x:Class="GM4ManagerWPF.Views.ExplorerUC"
+<UserControl x:Class="GM4ManagerWPF.Views.ExplorerUC"
             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
 			xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 			xmlns:local="clr-namespace:GM4ManagerWPF.Localization"
             xmlns:conv="clr-namespace:GM4ManagerWPF.Converters"
-			xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-			xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+			xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+			xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
             xmlns:viewmodels="clr-namespace:GM4ManagerWPF.ViewModels"
-            xmlns:ui="http://schemas.modernwpf.com/2019"            
-			mc:Ignorable="d"            
+            xmlns:behaviors="clr-namespace:GM4ManagerWPF.Behaviors"
+            xmlns:ui="http://schemas.modernwpf.com/2019"
+			mc:Ignorable="d"
 			d:DesignHeight="700" d:DesignWidth="900">
     <UserControl.Resources>
         <conv:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
         <conv:PermissionToTooltipConverter x:Key="PermissionTooltipConverter" />
         <conv:InvertBoolConverter x:Key="InvertBoolConverter"/>
+        <conv:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibilityConverter"/>
     </UserControl.Resources>
     <Grid>
         <Grid.ColumnDefinitions>
@@ -28,7 +30,7 @@
             <RowDefinition Height="120"/>
         </Grid.RowDefinitions>
         <StackPanel Grid.Column="0" Grid.ColumnSpan="4" Orientation="Horizontal">
-            <TextBox Height="40" Text="{Binding SelectedPath, UpdateSourceTrigger=PropertyChanged}" 
+            <TextBox Height="40" Text="{Binding SelectedPath, UpdateSourceTrigger=PropertyChanged}"
                 IsReadOnly="True" Margin="10,5,0,10" Width="400" IsReadOnlyCaretVisible="True" />
             <Button Height="40" Margin="10,5,0,10" Style="{DynamicResource AccentButtonStyle}" Content="{Binding Res[txtPleaseSelectNetworkDirectory]}"
                 Command="{Binding OpenFolderDialogCommand}" />
@@ -38,18 +40,19 @@
             <TextBlock Grid.Row="4" Grid.ColumnSpan="2" Text="{Binding Res[loadingPermissions]}"
                    Margin="30,0,0,0"
                    Foreground="DarkRed"
-                   FontWeight="Bold"                   
+                   FontWeight="Bold"
                    Visibility="{Binding IsLoadingPermissions, Converter={StaticResource BoolToVisibilityConverter}}" />
         </StackPanel>
         <Label Grid.Row="1" Grid.Column="2" Grid.ColumnSpan="2" Content="{Binding Res[headerDirectoryPermissions]}" HorizontalAlignment="Left" VerticalAlignment="Center" Height="30" Padding="10,5,0,5" FontWeight="Bold"  />
         <Border Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,0,10,0" BorderThickness="1" BorderBrush="{DynamicResource ListAccentLow}">
             <TreeView x:Name="DirectoryTree" Grid.Row="2" Grid.ColumnSpan="2" Grid.Column="0"
                   ItemsSource="{Binding RootItems}"
-                  SelectedItemChanged="DirectoryTree_SelectedItemChanged"
+                  behaviors:TreeViewSelectedItemBehavior.SelectedItem="{Binding SelectedNode, Mode=TwoWay}"
                   FontSize="14">
                 <TreeView.ItemTemplate>
                     <HierarchicalDataTemplate ItemsSource="{Binding Children}">
-                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center"
+                                    IsHitTestVisible="False">
                             <Image Width="16" Height="16">
                                 <Image.Style>
                                     <Style TargetType="Image">
@@ -73,7 +76,6 @@
                                         <Setter Property="Foreground" Value="{DynamicResource SystemControlForegroundBaseHighBrush}" />
                                         <Style.Triggers>
                                             <DataTrigger Binding="{Binding IsSelected}" Value="True">
-                                                <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundAccentBrush}" />
                                                 <Setter Property="Margin" Value="15,5,5,5" />
                                                 <Setter Property="FontWeight" Value="Bold" />
                                                 <Setter Property="Foreground" Value="{DynamicResource SystemControlForegroundBaseMediumHighBrush}" />
@@ -88,24 +90,27 @@
                 <TreeView.ItemContainerStyle>
                     <Style TargetType="TreeViewItem">
                         <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
+                        <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
+                        <Setter Property="behaviors:TreeViewSelectedCommandBehavior.Command"
+                                Value="{Binding OnNodeSelectedAsyncCommand}" />
                     </Style>
                 </TreeView.ItemContainerStyle>
             </TreeView>
         </Border>
 
         <Grid Grid.Row="2" Grid.Column="2" Grid.ColumnSpan="2">
-            <DataGrid 
-          ItemsSource="{Binding CurrentPermissions}" 
+            <DataGrid
+          ItemsSource="{Binding CurrentPermissions}"
           x:Name="PermissionsGrid"
           AutoGenerateColumns="False"
           CanUserAddRows="False"
-          SelectedItem="{Binding SelectedPermission, Mode=TwoWay}"   
+          SelectedItem="{Binding SelectedPermission, Mode=TwoWay}"
           IsReadOnly="True"
           >
                 <DataGrid.ContextMenu>
                     <ContextMenu>
-                        <MenuItem Header="{Binding Res[menuGroupMembers]}" 
-                      Command="{Binding ShowGroupMembersCommand}" 
+                        <MenuItem Header="{Binding Res[menuGroupMembers]}"
+                      Command="{Binding ShowGroupMembersCommand}"
                       CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
                     </ContextMenu>
                 </DataGrid.ContextMenu>
@@ -145,18 +150,30 @@
                            FontSize="16"
                            TextAlignment="Center"
                            VerticalAlignment="Center"
+                           TextWrapping="Wrap"
                            HorizontalAlignment="Center"
                            Padding="20"></TextBlock>
-             </Border>
+            </Border>
+            <Button Margin="0,90,0,0" Panel.ZIndex="2" Content="{Binding Res[btnDeactivateInheritance]}"
+                Command="{Binding DisableInheritanceCommand}"
+                Style="{DynamicResource AccentButtonStyle}"
+                VerticalAlignment="Center"
+                HorizontalAlignment="Center"
+                Visibility="{Binding IsInheritedFromParent, Converter={StaticResource BoolToVisibilityConverter}}" />
+            <Button Content="{Binding Res[btnEnableInheritance]}"
+                Command="{Binding EnableInheritanceRecursivlyCommand}"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Bottom"
+                    Style="{DynamicResource AccentButtonStyle}"
+                Visibility="{Binding IsInheritedFromParent, Converter={StaticResource InverseBoolToVisibilityConverter}}" />
         </Grid>
-
         <StackPanel Grid.Row="3" Grid.Column="2" Grid.ColumnSpan="2" Orientation="Horizontal" Margin="10,5,0,0">
-            <Button Content="{Binding Res[btnAddMember]}" 
-              Command="{Binding AddMemberCommand}" 
+            <Button Content="{Binding Res[btnAddMember]}"
+              Command="{Binding AddSelectedMemberCommand}"
               Style="{DynamicResource AccentButtonStyle}"
               Margin="0,0,10,0" />
-            <Button Content="{Binding Res[btnRemoveMember]}" 
-              Command="{Binding RemoveMemberCommand}" 
+            <Button Content="{Binding Res[btnRemoveMember]}"
+              Command="{Binding RemoveSelectedMemberCommand}"
               Style="{DynamicResource AccentButtonStyle}" />
         </StackPanel>
 
@@ -170,8 +187,8 @@
                  Margin="0,0,10,0"
                  VerticalAlignment="Center"
                  Text="{Binding NewFolderName, UpdateSourceTrigger=PropertyChanged}" />
-                <CheckBox Content="{Binding Res[txtDisableInheritance]}" 
-                  VerticalAlignment="Center" IsChecked="{Binding DisableInheritance}" />
+                <CheckBox Content="{Binding Res[txtDisableInheritance]}"
+                  VerticalAlignment="Center" IsChecked="{Binding DisableInheritanceForNewFolder}" />
             </StackPanel>
             <Button Content="{Binding Res[btnCreateFolder]}"
             Margin="0,10,0,0"

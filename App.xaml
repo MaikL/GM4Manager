@@ -5,7 +5,8 @@
             xmlns:ui="http://schemas.modernwpf.com/2019"
             xmlns:local="clr-namespace:GM4ManagerWPF.Localization"
             xmlns:conv="clr-namespace:GM4ManagerWPF.Converters"
-            xmlns:sys="clr-namespace:System;assembly=mscorlib" xmlns:local1="clr-namespace:GM4ManagerWPF.Converters">
+            xmlns:sys="clr-namespace:System;assembly=mscorlib" xmlns:local1="clr-namespace:GM4ManagerWPF.Converters"
+            >
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>

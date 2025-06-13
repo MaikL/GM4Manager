@@ -1,7 +1,11 @@
 ﻿using GM4ManagerWPF.Classes;
 using GM4ManagerWPF.Helpers;
+using GM4ManagerWPF.Interfaces;
+using GM4ManagerWPF.ViewModels;
+using Microsoft.Extensions.DependencyInjection;
 using System.Diagnostics;
 using System.Windows;
+
 
 namespace GM4ManagerWPF
 {
@@ -10,18 +14,22 @@ namespace GM4ManagerWPF
     /// </summary>  
     public partial class App : Application
     {
-        private SplashScreenWindow splashScreen = null!; // Use null-forgiving operator to suppress CS8618  
+
+        public static ServiceProvider Services { get; private set; } = null!;
+
+        private SplashScreenWindow? splashScreen;
+
 
         protected override async void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
             var sw = Stopwatch.StartNew();
-            
-            // Show splash  
+
+            // Splash anzeigen
             splashScreen = new SplashScreenWindow();
             splashScreen.Show();
 
-            var groups = await GroupHelper.GetUserGroupsForCurrentUserAsync(status =>
+            var groups = await ActiveDirectoryService.GetUserGroupsForCurrentUserAsync(status =>
             {
                 Application.Current.Dispatcher.Invoke(() =>
                 {
@@ -29,11 +37,11 @@ namespace GM4ManagerWPF
                 });
             });
 
+
             try
             {
-                // Simulate config loading  
-                AppSettingsManager.Load(); // or await if async  
-                await Task.Delay(800); // Simulate loading time  
+                AppSettingsManager.Load();
+                await Task.Delay(800);
             }
             catch (Exception ex)
             {
@@ -42,21 +50,29 @@ namespace GM4ManagerWPF
                 return;
             }
 
-            // Show main window  
-            var mainWindow = new MainWindow();
+            
+            var services = new ServiceCollection();
+            services.AddSingleton<ICursorService, CursorService>();
+            services.AddSingleton<MainWindowViewModel>();
+            Services = services.BuildServiceProvider();
+            
+            var mainWindow = new MainWindow(Services.GetRequiredService<MainWindowViewModel>());
+            Application.Current.MainWindow = mainWindow;
+            Application.Current.ShutdownMode = ShutdownMode.OnMainWindowClose;
+
             mainWindow.Loaded += (s, ev) =>
             {
-                // Fade out splash screen after main window is shown  
-                splashScreen.BeginFadeOut(() =>
+                splashScreen?.BeginFadeOut(() =>
                 {
-                    splashScreen.Close();
+                    splashScreen?.Close();
+                    splashScreen = null;
                 });
             };
-            
+
             sw.Stop();
             Debug.WriteLine($"Splash dauerte: {sw.ElapsedMilliseconds} ms");
 
-            mainWindow.Show(); // Triggers Loaded event  
+            mainWindow.Show();
         }
     }
 }
