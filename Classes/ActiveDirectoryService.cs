@@ -607,7 +607,8 @@ namespace GM4ManagerWPF.Classes
             searcher.PropertiesToLoad.Add("cn");
             searcher.PropertiesToLoad.Add("sAMAccountName");
             searcher.PropertiesToLoad.Add("displayName");
-            searcher.PropertiesToLoad.Add("objectClass");            
+            searcher.PropertiesToLoad.Add("objectClass");
+            searcher.PropertiesToLoad.Add("Description");
 
             SearchResultCollection searchResults = searcher.FindAll();
 
@@ -629,6 +630,9 @@ namespace GM4ManagerWPF.Classes
                                       : "",
                         SamAccountName = result.Properties.Contains("sAMAccountName") && result.Properties["sAMAccountName"].Count > 0
                                          ? result.Properties["sAMAccountName"][0]?.ToString() ?? ""
+                                         : "",
+                        Description = result.Properties.Contains("Description") && result.Properties["Description"].Count > 0
+                                         ? result.Properties["Description"][0]?.ToString() ?? ""
                                          : "",
                         ObjectClass = result.Properties.Contains("objectClass") && result.Properties["objectClass"].Count > 0
                           ? result.Properties["objectClass"][0]?.ToString() ?? ""
