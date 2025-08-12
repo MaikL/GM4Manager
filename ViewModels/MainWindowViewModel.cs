@@ -20,7 +20,7 @@ public partial class MainWindowViewModel : ObservableRecipient
     private string managerName = string.Empty;
 
     [ObservableProperty]
-    private string currentVersion = "1.1.1"; 
+    private string currentVersion = "1.1.2"; 
 
     [ObservableProperty]
     private int selectedTabIndex;

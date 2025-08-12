@@ -12,13 +12,12 @@
          ui:WindowHelper.UseModernWindowStyle="True">
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
         <DataGrid Grid.Row="0"
-              ItemsSource="{Binding SelectedGroup.Members}" 
-              AutoGenerateColumns="False">
+              ItemsSource="{Binding SelectedGroup.Members}"                  
+              AutoGenerateColumns="False" Grid.RowSpan="2">
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Name" Binding="{Binding SamAccountName}" />
                 <DataGridTextColumn Header="Description" Binding="{Binding DisplayName}" />

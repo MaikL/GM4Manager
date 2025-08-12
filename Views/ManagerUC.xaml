@@ -41,11 +41,19 @@
             </ListView.View>
         </ListView>
 
-        <StackPanel Grid.Column="2" Grid.Row="0" Grid.ColumnSpan="2">
+        <Grid Grid.Column="2" Grid.Row="0" Grid.ColumnSpan="2">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="40"></RowDefinition>
+                <RowDefinition Height="*"></RowDefinition>
+            </Grid.RowDefinitions>
             <Label Content="{Binding Res[headerMembers]}" HorizontalAlignment="Center"
                    Height="40" VerticalAlignment="Center" Padding="0,5,0,5"
+                   Grid.Row="0"
                    FontWeight="Bold" />
-            <ListBox ItemsSource="{Binding GroupMembers}" SelectedItem="{Binding SelectedMember, Mode=TwoWay}" >
+            <ListBox ItemsSource="{Binding GroupMembers}"
+                     SelectedItem="{Binding SelectedMember, Mode=TwoWay}"
+                     Grid.Row="1"
+                     ScrollViewer.VerticalScrollBarVisibility="Visible">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
                         <StackPanel Orientation="Horizontal">
@@ -55,8 +63,8 @@
                     </DataTemplate>
                 </ListBox.ItemTemplate>
             </ListBox>
-        </StackPanel>
-        
+        </Grid>
+
         <Button x:Name="BtnAddMember" Grid.Column="2" Content="{Binding Res[btnAddMember]}" 
                 Style="{DynamicResource AccentButtonStyle}"
     			HorizontalAlignment="Left" Grid.Row="1" VerticalAlignment="Top" Margin="0,5,0,0"
