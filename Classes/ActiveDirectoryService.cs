@@ -75,6 +75,13 @@ namespace GM4ManagerWPF.Classes
                 };
                 LvGroupsCollection.Add(emptylvGroupsClass);
             }
+
+            // sort the collection by Cn
+            LvGroupsCollection = new ObservableCollection<LvGroupsClass>(
+                LvGroupsCollection
+                    .OrderBy(g => g.Cn, StringComparer.OrdinalIgnoreCase)
+            );
+
             return LvGroupsCollection;
         }
 
@@ -649,7 +656,10 @@ namespace GM4ManagerWPF.Classes
                 }
             }
 
-            return results;
+
+            return results
+                .OrderBy(r => r.CommonName, StringComparer.OrdinalIgnoreCase)
+                .ToList();
         }
         // Method to get the groups a user belongs to from Active Directory
         public static List<LdapSearchResult> GetMyGroupsFromLdap(string userDn)

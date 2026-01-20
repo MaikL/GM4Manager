@@ -411,4 +411,12 @@
   <data name="menuVersion" xml:space="preserve">
     <value>🔔 Update available: {LatestVersion}</value>
   </data>
+  <data name="menuSetRead" xml:space="preserve">
+    <value>Set to Read Only</value>
+    <comment>Sets the permission on the Folder to readonly</comment>
+  </data>
+  <data name="menuSetModify" xml:space="preserve">
+    <value>Set to Modify</value>
+    <comment>sets the permission on the folder to modify</comment>
+  </data>
 </root>

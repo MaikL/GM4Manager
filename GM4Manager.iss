@@ -1,6 +1,6 @@
 [Setup]
 AppName=GM4Manager - Group Manager for Manager
-AppVersion=1.1.2
+AppVersion=1.1.3
 DefaultDirName={localappdata}\GM4Manager
 DefaultGroupName=GM4Manager
 OutputBaseFilename=GM4ManagerSetup

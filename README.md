@@ -29,6 +29,7 @@ If the authorizations are sufficent, the user is added.
 ![adding successful](/Screenshots/AddingSuccessful.jpg)
 At the Explorer view, you can see the group and the members of the selected folder.
 If the folder has separate share permissions, these are also displayed and you can add / remove user / groups.
+You can even change the permissions of the Security Group or user from Readonly to Modify and vice versa.
 ![Explorer](/Screenshots/Explorer.jpg)
 If you want to run this as another user (e.g. you are logged in as john.doe but your administrator account ist a-john.doe)
 there is a solution here : [RunProgramAs](https://github.com/MaikL/RunProgramAs) a small PowerShell script to
@@ -38,6 +39,7 @@ save Credentials and run a program with these credentials.
 
 - **Group Management**: Adding and removing users to groups where you are the Manager.
 - **Explorer**: Explorer like interface for easy navigation and management of groups and their permissions.
+- **Change Permissions**: Modify group permissions directly from the interface.
 - **Splash Screen**: Displays a loading screen during application startup.
 - **Asynchronous Processing**: Optimized loading times with asynchronous operations.
 

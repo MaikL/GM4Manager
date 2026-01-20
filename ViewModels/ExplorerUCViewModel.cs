@@ -24,13 +24,18 @@ namespace GM4ManagerWPF.ViewModels
         [ObservableProperty]
         [NotifyCanExecuteChangedFor(nameof(DisableInheritanceCommand))]
         [NotifyCanExecuteChangedFor(nameof(EnableInheritanceRecursivlyCommand))]
+        [NotifyCanExecuteChangedFor(nameof(SetReadAccessCommand))]
+        [NotifyCanExecuteChangedFor(nameof(SetModifyAccessCommand))]
         private bool isInheritedFromParent;
+
 
         [ObservableProperty]
         [NotifyCanExecuteChangedFor(nameof(AddSelectedMemberCommand))]
         [NotifyCanExecuteChangedFor(nameof(RemoveSelectedMemberCommand))]
         [NotifyCanExecuteChangedFor(nameof(DisableInheritanceCommand))]
         [NotifyCanExecuteChangedFor(nameof(EnableInheritanceRecursivlyCommand))]
+        [NotifyCanExecuteChangedFor(nameof(SetReadAccessCommand))]
+        [NotifyCanExecuteChangedFor(nameof(SetModifyAccessCommand))]
         private bool canEditPermissions;
 
         [ObservableProperty]
@@ -65,6 +70,8 @@ namespace GM4ManagerWPF.ViewModels
         [NotifyCanExecuteChangedFor(nameof(RemoveSelectedMemberCommand))]
         [NotifyCanExecuteChangedFor(nameof(DisableInheritanceCommand))]
         [NotifyCanExecuteChangedFor(nameof(EnableInheritanceRecursivlyCommand))]
+        [NotifyCanExecuteChangedFor(nameof(SetReadAccessCommand))]
+        [NotifyCanExecuteChangedFor(nameof(SetModifyAccessCommand))]
         private DirectoryNodeViewModel? selectedNode;
 
         private readonly ICursorService _cursorService;
@@ -415,6 +422,8 @@ namespace GM4ManagerWPF.ViewModels
 
         [ObservableProperty]
         [NotifyCanExecuteChangedFor(nameof(RemoveSelectedMemberCommand))]
+        [NotifyCanExecuteChangedFor(nameof(SetReadAccessCommand))]
+        [NotifyCanExecuteChangedFor(nameof(SetModifyAccessCommand))]
         private PermissionInfo? selectedPermission;
 
         /// <summary>
@@ -612,5 +621,83 @@ namespace GM4ManagerWPF.ViewModels
             Debug.WriteLine($"CanRemoveMember: SelectedNode: {SelectedNode?.FullPath}, {SelectedPermission?.IdentityReference} - {CanEditPermissions}");
             return SelectedNode != null && SelectedPermission != null && CanEditPermissions;
         }
+
+
+        /// <summary>
+        /// Sets Read & Execute permissions for the specified PermissionInfo item.
+        /// </summary>
+        [RelayCommand(CanExecute = nameof(CanChangePermission))]
+        private void SetReadAccess(PermissionInfo? item)
+        {
+            if (item == null || string.IsNullOrWhiteSpace(SelectedFolderPath))
+                return;
+
+            _cursorService.SetBusyCursor();
+            try
+            {
+                // remove existing explicit ACEs for this item
+                NtfsPermissionHelper.RemovePermission(SelectedFolderPath, item.IdentityReference);
+
+                // allow Read & Execute to user or group
+                NtfsPermissionHelper.AddPermission(SelectedFolderPath,
+                                                   item.IdentityReference,
+                                                   FileSystemRights.ReadAndExecute,
+                                                   AccessControlType.Allow);
+
+                // reload permissions
+                LoadPermissions(SelectedFolderPath);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(Resources.msgFailedToLoadPermissions, Resources.msgHeaderError, MessageBoxButton.OK, MessageBoxImage.Error);                
+            }
+            finally
+            {
+                _cursorService.ResetCursor();
+            }
+        }
+
+        /// <summary>
+        /// sets Modify permissions for the specified path
+        /// </summary>
+        [RelayCommand(CanExecute = nameof(CanChangePermission))]
+        private void SetModifyAccess(PermissionInfo? item)
+        {
+            if (item == null || string.IsNullOrWhiteSpace(SelectedFolderPath))
+                return;
+
+            _cursorService.SetBusyCursor();
+            try
+            {
+                // remove existing explicit ACEs for this item
+                NtfsPermissionHelper.RemovePermission(SelectedFolderPath, item.IdentityReference);
+
+                // allow Modify to user or group
+                NtfsPermissionHelper.AddPermission(SelectedFolderPath,
+                                                   item.IdentityReference,
+                                                   FileSystemRights.Modify,
+                                                   AccessControlType.Allow);
+
+                LoadPermissions(SelectedFolderPath);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(Resources.msgFailedToLoadPermissions, Resources.msgHeaderError, MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            finally
+            {
+                _cursorService.ResetCursor();
+            }
+        }
+
+        private bool CanChangePermission(PermissionInfo? item)
+        {
+            // only if there is a selected node, item is not null, inheritance is disabled and user can edit permissions
+            return SelectedNode != null
+                && item != null
+                && !IsInheritedFromParent
+                && CanEditPermissions;
+        }
+
     }
 } // End of namespace

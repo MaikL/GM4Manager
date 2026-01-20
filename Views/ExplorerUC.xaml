@@ -112,6 +112,19 @@
                         <MenuItem Header="{Binding Res[menuGroupMembers]}"
                       Command="{Binding ShowGroupMembersCommand}"
                       CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+                        <Separator />
+
+                        <!-- Read only -->
+                        <MenuItem Header="{Binding Res[menuSetRead]}"
+                                  Command="{Binding SetReadAccessCommand}"
+                                  CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                  />
+                        <!-- Modify -->
+                        <MenuItem Header="{Binding Res[menuSetModify]}"
+                                  Command="{Binding SetModifyAccessCommand}"
+                                  CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                   />
+
                     </ContextMenu>
                 </DataGrid.ContextMenu>
                 <DataGrid.Columns>

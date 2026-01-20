@@ -19,7 +19,7 @@ namespace GM4ManagerWPF.Properties {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "18.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class Resources {
@@ -462,6 +462,24 @@ namespace GM4ManagerWPF.Properties {
         internal static string menuLight {
             get {
                 return ResourceManager.GetString("menuLight", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Set to Modify.
+        /// </summary>
+        internal static string menuSetModify {
+            get {
+                return ResourceManager.GetString("menuSetModify", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Set to Read Only.
+        /// </summary>
+        internal static string menuSetRead {
+            get {
+                return ResourceManager.GetString("menuSetRead", resourceCulture);
             }
         }
         
