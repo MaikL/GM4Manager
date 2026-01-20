@@ -48,9 +48,6 @@ GM4Manager solves a known Active Directory limitation:
 
 ## 🖼 Screenshots
 
-### Run as Admin
-![Add as Admin](/Screenshots/AddAsAdmin.jpg)
-
 ### Managed By
 ![Managed By](/Screenshots/ManagedBy.jpg)
 
