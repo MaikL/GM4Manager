@@ -1,99 +1,183 @@
-# GM4Manager
-
-Have you ever had the problem that you should quickly create a new shared folder
-for Fed and George and Lisa (oh and don't forget Tom)?
-A short time later, Lisa needs read-only rights and George has moved to another department,
-so he is no longer allowed in the folder?
-That's why the �Group Manager for Managers� was created. It is a tool, 
-with which you create a directory for the managers, and by assigning the �Managed By� authorization 
-the manager can then independently create and manage new folders with permissions of their own choosing.
-The best thing about GM4Manager, however, is that you can not only add individual users to �Managed By�, 
-but also groups. This makes it possible, for example, to have an �Accounting Manager� group. 
-There, not only the head of accounting but also his deputy has the right to create folders and change authorizations.
-
-
-Usually there can only be only one manager at a time as "Managed By".
-GM4Manager solves this problem by setting the (member attribute)[https://learn.microsoft.com/en-us/windows/win32/adschema/a-member] by an administrator.
-An administrator who has the authorization to edit this member attribute can also start GM4Manager and simply check the �As Admin� box.
-![Screenshot of Add as Admin](/Screenshots/AddAsAdmin.jpg)
-Explained with an example. 
-A security group �CS_02_Commercial_RW� is created.
-A second group is created for this: �CS_02_Commercial_Manager�, this group is added as a manager to the 
-group �CS_02_Commercial_RW�.
-![Screenshot of Managed By](/Screenshots/ManagedBy.jpg)
-If you now add a user to the �CS_02_Commercial_Manager� group as an Domain Administrator, 
-this user then receives editing rights for the �CS_02_Commercial_RW� group and can add and remove users (and groups) there.
-If you click on �Add user�, a search dialog for the domain opens.
-![Seach Dialog for adding a user](/Screenshots/AddUserFromAD.jpg)
-If the authorizations are sufficent, the user is added.
-![adding successful](/Screenshots/AddingSuccessful.jpg)
-At the Explorer view, you can see the group and the members of the selected folder.
-If the folder has separate share permissions, these are also displayed and you can add / remove user / groups.
-You can even change the permissions of the Security Group or user from Readonly to Modify and vice versa.
-![Explorer](/Screenshots/Explorer.jpg)
-If you want to run this as another user (e.g. you are logged in as john.doe but your administrator account ist a-john.doe)
-there is a solution here : [RunProgramAs](https://github.com/MaikL/RunProgramAs) a small PowerShell script to
-save Credentials and run a program with these credentials.
-
-## Features
-
-- **Group Management**: Adding and removing users to groups where you are the Manager.
-- **Explorer**: Explorer like interface for easy navigation and management of groups and their permissions.
-- **Change Permissions**: Modify group permissions directly from the interface.
-- **Splash Screen**: Displays a loading screen during application startup.
-- **Asynchronous Processing**: Optimized loading times with asynchronous operations.
-
-## Prerequisites
-
-- **.NET 8 SDK**: Ensure the .NET 8 SDK is installed.
-- **Development Environment**: Visual Studio 2022 or any IDE that supports WPF.
-- https://github.com/Kinnara/ModernWpf
-
-## Installation
-
-Download [GM4ManagerSetup.exe](Output/GM4ManagerSetup.exe)
-
-## Usage
-
-1. Start the application.
-2. Manage groups and members through the main interface.
-3. Use the buttons to add or remove members.
-4. Use the Explorer-like interface to navigate through groups and their members.
-
-## Project Structure
-
-- **`App.xaml` and `App.xaml.cs`**: Entry point of the application.
-- **`SplashScreenWindow.xaml`**: Defines the splash screen.
-- **`ManagerUC.xaml`**: Main view for managing groups and members.
-- **`ExplorerUC.xaml`**: Explorer-like interface for navigating groups.
-- **`Ressources`**: Contains icons and images for the application.
-- Inno Setup is used as a the installer software
-
-## Known Issues
-
-- The start of the application can take a while, especially if you are in a lot of security groups.
-- Ensure all resources (e.g., icons and images) are correctly included. See [Troubleshooting](#troubleshooting).
-- If you are on a VPN and in a lot of Security Groups it can take over a minute to launch!
-
-## Troubleshooting
-
-- **Missing Resources**: Verify that the files are in the correct folder and their `Build Action` is set to `Resource`.
-- **Path Issues**: Ensure the paths in the XAML files are correct.
-- **Performance Issues**: If the application is slow, check the network connection and ensure the domain controller is reachable. If you have a lot of Security Groups it can take a while to load the application.
-- **Permissions**: Ensure you have the necessary permissions to manage groups and members in Active Directory.
-- **Share Folders**: If you are using this application to manage shared folders, ensure that the user has the necessary permissions to modify group memberships. Especially the share permissions on the share folder itself.
-- **As Admin Mode**: If you are using the "As Admin" mode, ensure that the user has the necessary permissions to edit the `member` attribute of the group.
-
-## Contributing
-
-Contributions are welcome! Fork the repository, make your changes, and submit a pull request.
-
-## License
-
-This project is licensed under the [GPL 3.0 License](LICENSE.md).
-
-Short Demo video: [GM4Manager Demo](/Screenshots/GM4Manager.gif)
+﻿# GM4Manager
+### **NTFS & Active Directory Permission Manager (Open Source)**
+A practical Windows tool that allows managers (or delegated groups) to
+**independently create and manage folders and permissions** — without involving IT every time.
 
 ---
 
-Thank you for using GM4Manager!   
+## 💡 Motivation
+
+Have you ever been in this situation?
+
+- “Please create a new shared folder for Fritz, George, and Lisa.”
+- A week later: “Lisa now only needs **read access**.”
+- And George moved to another department — remove his access.
+
+That’s why **GM4Manager** exists.
+
+It allows IT departments to delegate folder permission management to
+**department managers or dedicated manager groups**,
+using Active Directory’s delegation model — without granting excessive rights or exposing the entire AD.
+
+GM4Manager solves a known Active Directory limitation:
+
+> AD normally allows **only one** “Managed By” owner.
+> GM4Manager works around this by managing the **group’s (member)[https://learn.microsoft.com/en-us/windows/win32/adschema/a-member] attribute**,
+> enabling **multiple managers** or **manager groups**.
+
+---
+
+## 🧭 How GM4Manager Works
+
+1. Create a security group, e.g.
+   **CS_02_Commercial_RW**
+
+2. Create a corresponding manager group, e.g.
+   **CS_02_Commercial_Manager**
+
+3. Assign the manager group as **Manager (Managed By)** of the RW group.
+
+4. Users in the **manager** group can now:
+   - Add/remove users & groups
+   - Change permissions (Readonly ↔ Modify)
+   - Create new subfolders
+   - Manage NTFS ACLs
+   - Manage share permissions
+
+---
+
+## 🖼 Screenshots
+
+### Run as Admin
+![Add as Admin](/Screenshots/AddAsAdmin.jpg)
+
+### Managed By
+![Managed By](/Screenshots/ManagedBy.jpg)
+
+### Active Directory Search
+![Search](/Screenshots/AddUserFromAD.jpg)
+
+### Successfully Added
+![Success](/Screenshots/AddingSuccessful.jpg)
+
+### Explorer View
+![Explorer](/Screenshots/Explorer.jpg)
+
+### Change Readonly ↔ Modify
+![Readonly to Modify](/Screenshots/Readonly_to_Modify.png)
+
+---
+
+## ✨ Features
+
+### 🔐 Active Directory Management
+- Add or remove users and groups
+- Support for **multiple managers**
+- Delegation via the `member` attribute
+- Integrated AD search window
+
+### 📁 NTFS & Share Permissions
+- Explorer-style folder navigation
+- Toggle Read ↔ Modify instantly
+- Display and manage share permissions
+- Nested group support
+- Display inherited and explicit access rules
+
+### ⚡ Performance & Usability
+- Asynchronous operations (no UI freeze)
+- Splash screen during startup
+- Modern UI (ModernWpf)
+- Clear error handling
+- Optimized LDAP queries
+
+---
+
+## 🛠 Prerequisites
+
+- Windows (AD environment)
+- **.NET 8 Runtime**
+- Optional: run as another user
+  https://github.com/MaikL/RunProgramAs
+
+---
+
+## 📥 Installation
+
+Download the installer:
+
+👉 **[GM4ManagerSetup.exe](Output/GM4ManagerSetup.exe)**
+
+Installer built with **Inno Setup**.
+
+---
+
+## 🚀 Usage
+
+1. Start GM4Manager
+2. Navigate to a group or folder
+3. Add/remove users or groups
+4. Adjust NTFS permissions (Read ↔ Modify)
+5. Create new directories
+6. Review share permissions
+
+---
+
+## 🧱 Project Structure
+
+- `App.xaml` — Main application entry
+- `ManagerUC.xaml` — AD group and member management
+- `ExplorerUC.xaml` — NTFS/share permission explorer
+- `Helpers/` — LDAP, AD, NTFS utilities
+- `Resources/` — Images, icons, assets
+- `Installer/` — Inno Setup configuration
+
+---
+
+## ⚠ Known Issues
+
+- Startup may be slow if the user has many AD group memberships
+- VPN or slow DC connections can delay LDAP queries
+- Share permissions may override NTFS permissions
+- Large AD environments may produce slower searches
+
+---
+
+## 🔧 Troubleshooting
+
+- **Slow startup** → Check AD connectivity, reduce excessive group memberships
+- **Permission issues** → Verify share permissions AND NTFS permissions
+- **Folder creation issues** → Check inheritance settings and share-level rights
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome!
+Feel free to:
+
+- open issues
+- submit pull requests
+- suggest or request new features
+
+---
+
+## 📄 License
+
+Licensed under the **GPL 3.0 License**
+See: LICENSE.md
+
+---
+
+## 🎥 Demo
+
+![GM4Manager Demo](/Screenshotsport the Project
+
+If you find GM4Manager helpful, consider:
+
+- ⭐ starring the repository
+- 🗣 recommending it to colleagues
+- 🐞 reporting bugs or feature ideas
+
+---
+
+## 🎉 Thank You for Using GM4Manager!
