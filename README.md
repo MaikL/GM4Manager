@@ -167,7 +167,7 @@ See: LICENSE.md
 
 ## 🎥 Demo
 
-![GM4Manager Demo](/Screenshotsport the Project
+![GM4Manager Demo](/Screenshots/GM4Manager.gif)
 
 If you find GM4Manager helpful, consider:
 
